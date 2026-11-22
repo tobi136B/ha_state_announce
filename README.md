@@ -42,10 +42,25 @@ On older versions, add the repository to HACS as a custom repository of type **I
 
 Add the action **Announce states** to an automation or script and fill in:
 
-- **Entities**: the entities to check
+- **Entities** and/or **Selection**: what to check
 - **State**: the state to look for, `on` by default
 - **Messages**: what to send for one, several or no matches
 - **Targets**: where to send it
+
+### Entities and selection
+
+There are two ways to choose what gets checked. They can be combined.
+
+| Field | Description |
+|---|---|
+| Entities | Individual entities. Checked in the given order, filters do not apply. |
+| Selection | Floors, areas, devices or labels. Resolved on every run, so entities added later are included automatically. |
+| Device class | Filter for the selection, e.g. window or door. |
+| Entity type | Filter for the selection, e.g. light or switch. |
+
+Entities found through the selection are sorted by name and follow the individually chosen ones. Disabled, hidden, diagnostic and configuration entities are skipped, so a battery sensor on a window contact is not counted as a window.
+
+Example: Selection *Upstairs*, device class *Window* checks every window contact on that floor, including ones you add later.
 
 ### Messages and placeholders
 
@@ -111,15 +126,15 @@ Several targets can be selected at once. If one of them fails, the others still 
 
 ## Examples
 
-### Open windows on a voice assistant
+### Open windows on a floor, announced by a voice assistant
 
 ```yaml
 action: state_announce.announce
 data:
-  entities:
-    - binary_sensor.window_kitchen
-    - binary_sensor.window_bath
-    - binary_sensor.window_office
+  selection:
+    floor_id: upstairs
+  device_classes:
+    - window
   state: "on"
   message_one: "The window {names} is open."
   message_many: "{count} windows are open: {names}."

@@ -42,10 +42,25 @@ Bei älteren Versionen das Repository in HACS als benutzerdefiniertes Repository
 
 Die Aktion **Zustand ansagen** in eine Automation oder ein Skript einfügen und ausfüllen:
 
-- **Entitäten**: die zu prüfenden Entitäten
+- **Entitäten** und/oder **Auswahl**: was geprüft wird
 - **Zustand**: der gesuchte Zustand, Standard `on`
 - **Nachrichten**: was bei einem, mehreren oder keinem Treffer gesendet wird
 - **Ziele**: wohin gesendet wird
+
+### Entitäten und Auswahl
+
+Was geprüft wird, lässt sich auf zwei Wegen festlegen. Beide können kombiniert werden.
+
+| Feld | Beschreibung |
+|---|---|
+| Entitäten | Einzelne Entitäten. Werden in dieser Reihenfolge geprüft, Filter gelten für sie nicht. |
+| Auswahl | Etagen, Bereiche, Geräte oder Labels. Wird bei jeder Ausführung neu ausgewertet, später hinzugefügte Entitäten sind automatisch dabei. |
+| Geräteklasse | Filter für die Auswahl, z. B. Fenster oder Tür. |
+| Entitätstyp | Filter für die Auswahl, z. B. Licht oder Schalter. |
+
+Über die Auswahl gefundene Entitäten werden nach Namen sortiert und folgen auf die einzeln gewählten. Deaktivierte, ausgeblendete, Diagnose und Konfigurations Entitäten werden übersprungen. Der Batteriesensor eines Fensterkontakts zählt also nicht als Fenster.
+
+Beispiel: Auswahl *Obergeschoss*, Geräteklasse *Fenster* prüft alle Fensterkontakte dieser Etage, auch solche, die später dazukommen.
 
 ### Nachrichten und Platzhalter
 
@@ -111,15 +126,15 @@ Es können mehrere Ziele gleichzeitig gewählt werden. Fällt eines aus, bekomme
 
 ## Beispiele
 
-### Offene Fenster über einen Sprachassistenten
+### Offene Fenster einer Etage über einen Sprachassistenten
 
 ```yaml
 action: state_announce.announce
 data:
-  entities:
-    - binary_sensor.fenster_kueche
-    - binary_sensor.fenster_bad
-    - binary_sensor.fenster_buero
+  selection:
+    floor_id: obergeschoss
+  device_classes:
+    - window
   state: "on"
   message_one: "Das Fenster {namen} ist offen."
   message_many: "{anzahl} Fenster sind offen: {namen}."

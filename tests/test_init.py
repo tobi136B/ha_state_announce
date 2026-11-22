@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
+from homeassistant.helpers import area_registry as ar, entity_registry as er
 from homeassistant.helpers.service import SERVICE_DESCRIPTION_CACHE
 from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
@@ -148,3 +149,41 @@ async def test_target_options_follow_new_services(
     description = hass.data[SERVICE_DESCRIPTION_CACHE][(DOMAIN, "announce")]
     options = description["fields"]["targets"]["selector"]["select"]["options"]
     assert "notify.alexa_media_spaeter" in [option["value"] for option in options]
+
+
+async def test_no_entities(hass: HomeAssistant, setup: list[ServiceCall]) -> None:
+    """Ohne Entitäten und ohne Auswahl gibt es eine klare Fehlermeldung."""
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN,
+            "announce",
+            {"message_many": "{namen}", "targets": ["notify.mobile_app_iphone"]},
+            blocking=True,
+        )
+
+
+async def test_announce_by_selection(
+    hass: HomeAssistant, setup: list[ServiceCall]
+) -> None:
+    """Auswahl über einen Bereich mit Geräteklasse."""
+    area = ar.async_get(hass).async_create("Flur")
+    registry = er.async_get(hass)
+    entry = registry.async_get_or_create("binary_sensor", "test", "flur_fenster")
+    registry.async_update_entity(entry.entity_id, area_id=area.id)
+    hass.states.async_set(
+        entry.entity_id, "on", {"friendly_name": "Flur", "device_class": "window"}
+    )
+    response = await hass.services.async_call(
+        DOMAIN,
+        "announce",
+        {
+            "selection": {"area_id": area.id},
+            "device_classes": ["window"],
+            "message_many": "{anzahl} offen: {namen}",
+            "targets": ["notify.mobile_app_iphone"],
+        },
+        blocking=True,
+        return_response=True,
+    )
+    assert response["names"] == ["Flur"]
+    assert setup[0].data["message"] == "1 offen: Flur"

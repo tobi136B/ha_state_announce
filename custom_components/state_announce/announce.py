@@ -8,14 +8,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import re
+from typing import Any
 
-from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
-from homeassistant.core import HomeAssistant
+from homeassistant.const import ATTR_DEVICE_CLASS, STATE_UNAVAILABLE, STATE_UNKNOWN
+from homeassistant.core import HomeAssistant, split_entity_id
 from homeassistant.helpers import (
     area_registry as ar,
     device_registry as dr,
     entity_registry as er,
 )
+
+try:
+    from homeassistant.helpers.target import TargetSelection
+except ImportError:  # ältere Versionen von Home Assistant
+    from homeassistant.helpers.target import TargetSelectorData as TargetSelection
+from homeassistant.helpers.target import async_extract_referenced_entity_ids
 
 from .const import (
     DEFAULT_LANGUAGE,
@@ -129,6 +136,64 @@ def resolve_name(hass: HomeAssistant, entity_id: str, name_source: str) -> str:
     if name_source == NAME_SOURCE_NAME_WITHOUT_AREA:
         return _remove_area(display_name, _area_name(hass, entry))
     return display_name
+
+
+def _matches_filters(
+    hass: HomeAssistant,
+    entity_id: str,
+    device_classes: list[str],
+    domains: list[str],
+) -> bool:
+    """Prüfen, ob eine Entität zu den Filtern Geräteklasse und Entitätstyp passt."""
+    if domains and split_entity_id(entity_id)[0] not in domains:
+        return False
+    if device_classes:
+        state = hass.states.get(entity_id)
+        device_class = state.attributes.get(ATTR_DEVICE_CLASS) if state else None
+        if device_class is None:
+            # Ohne Zustand (z. B. nicht erreichbar) Geräteklasse aus der Registry
+            entry = er.async_get(hass).async_get(entity_id)
+            if entry is not None:
+                device_class = entry.device_class or entry.original_device_class
+        if device_class not in device_classes:
+            return False
+    return True
+
+
+def collect_entities(
+    hass: HomeAssistant,
+    entities: list[str],
+    selection: dict[str, Any] | None,
+    device_classes: list[str],
+    domains: list[str],
+    name_source: str,
+) -> list[str]:
+    """Alle zu prüfenden Entitäten zusammenstellen.
+
+    Zuerst die einzeln gewählten Entitäten in ihrer Reihenfolge, danach die
+    über Etage, Bereich, Gerät oder Label gefundenen, sortiert nach Namen.
+    Die Filter gelten nur für die Auswahl, einzeln gewählte Entitäten
+    werden immer geprüft. Diagnose, Konfigurations und ausgeblendete
+    Entitäten werden bei der Auswahl von Home Assistant bereits ausgelassen.
+    """
+    result = list(dict.fromkeys(entities))
+    if not selection:
+        return result
+
+    selected = async_extract_referenced_entity_ids(hass, TargetSelection(selection))
+    found = (selected.referenced | selected.indirectly_referenced) - set(result)
+    registry = er.async_get(hass)
+    filtered = [
+        entity_id
+        for entity_id in found
+        if _matches_filters(hass, entity_id, device_classes, domains)
+        and not (
+            (entry := registry.async_get(entity_id)) is not None
+            and entry.disabled_by is not None
+        )
+    ]
+    filtered.sort(key=lambda entity_id: resolve_name(hass, entity_id, name_source))
+    return result + filtered
 
 
 def evaluate(

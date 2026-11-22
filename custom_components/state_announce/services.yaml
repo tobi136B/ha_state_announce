@@ -1,10 +1,56 @@
 announce:
   fields:
     entities:
-      required: true
       selector:
         entity:
           multiple: true
+    selection:
+      selector:
+        target:
+    device_classes:
+      selector:
+        select:
+          options:
+            - window
+            - door
+            - garage_door
+            - opening
+            - lock
+            - motion
+            - occupancy
+            - presence
+            - moisture
+            - smoke
+            - gas
+            - carbon_monoxide
+            - problem
+            - running
+            - plug
+            - power
+            - connectivity
+            - battery
+          multiple: true
+          custom_value: true
+          translation_key: device_class
+    domains:
+      selector:
+        select:
+          options:
+            - binary_sensor
+            - light
+            - switch
+            - cover
+            - lock
+            - fan
+            - climate
+            - media_player
+            - person
+            - device_tracker
+            - input_boolean
+            - sensor
+          multiple: true
+          custom_value: true
+          translation_key: domain
     state:
       required: true
       default: "on"

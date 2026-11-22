@@ -12,6 +12,9 @@ SERVICE_ANNOUNCE: Final = "announce"
 
 # Felder der Aktion
 ATTR_ENTITIES: Final = "entities"
+ATTR_SELECTION: Final = "selection"
+ATTR_DEVICE_CLASSES: Final = "device_classes"
+ATTR_DOMAINS: Final = "domains"
 ATTR_STATE: Final = "state"
 ATTR_NAME_SOURCE: Final = "name_source"
 ATTR_MESSAGE_ONE: Final = "message_one"
@@ -22,6 +25,44 @@ ATTR_MESSAGE_UNAVAILABLE: Final = "message_unavailable"
 ATTR_TARGETS: Final = "targets"
 ATTR_TITLE: Final = "title"
 ATTR_ALEXA_TYPE: Final = "alexa_type"
+
+# Auswahl für den Filter Geräteklasse (eigene Werte sind zusätzlich erlaubt)
+DEVICE_CLASS_OPTIONS: Final = [
+    "window",
+    "door",
+    "garage_door",
+    "opening",
+    "lock",
+    "motion",
+    "occupancy",
+    "presence",
+    "moisture",
+    "smoke",
+    "gas",
+    "carbon_monoxide",
+    "problem",
+    "running",
+    "plug",
+    "power",
+    "connectivity",
+    "battery",
+]
+
+# Auswahl für den Filter Entitätstyp (eigene Werte sind zusätzlich erlaubt)
+DOMAIN_OPTIONS: Final = [
+    "binary_sensor",
+    "light",
+    "switch",
+    "cover",
+    "lock",
+    "fan",
+    "climate",
+    "media_player",
+    "person",
+    "device_tracker",
+    "input_boolean",
+    "sensor",
+]
 
 # Namensquellen
 NAME_SOURCE_ALIAS: Final = "alias"

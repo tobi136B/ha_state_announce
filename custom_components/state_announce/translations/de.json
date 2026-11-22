@@ -22,6 +22,9 @@
     },
     "send_failed": {
       "message": "Senden fehlgeschlagen: {targets}."
+    },
+    "no_entities": {
+      "message": "Keine Entitäten gewählt. Entitäten oder Auswahl ausfüllen."
     }
   },
   "selector": {
@@ -43,6 +46,44 @@
         "tts": "Sprachausgabe",
         "announce": "Ansage"
       }
+    },
+    "device_class": {
+      "options": {
+        "window": "Fenster",
+        "door": "Tür",
+        "garage_door": "Garagentor",
+        "opening": "Öffnung",
+        "lock": "Schloss",
+        "motion": "Bewegung",
+        "occupancy": "Belegung",
+        "presence": "Anwesenheit",
+        "moisture": "Feuchtigkeit",
+        "smoke": "Rauch",
+        "gas": "Gas",
+        "carbon_monoxide": "Kohlenmonoxid",
+        "problem": "Problem",
+        "running": "Läuft",
+        "plug": "Stecker",
+        "power": "Strom",
+        "connectivity": "Verbindung",
+        "battery": "Batterie"
+      }
+    },
+    "domain": {
+      "options": {
+        "binary_sensor": "Binärsensor",
+        "light": "Licht",
+        "switch": "Schalter",
+        "cover": "Abdeckung",
+        "lock": "Schloss",
+        "fan": "Ventilator",
+        "climate": "Klima",
+        "media_player": "Mediaplayer",
+        "person": "Person",
+        "device_tracker": "Gerätetracker",
+        "input_boolean": "Umschalter (Helfer)",
+        "sensor": "Sensor"
+      }
     }
   },
   "services": {
@@ -52,7 +93,19 @@
       "fields": {
         "entities": {
           "name": "Entitäten",
-          "description": "Zu prüfende Entitäten. Die Reihenfolge bestimmt die Reihenfolge der Namen."
+          "description": "Einzeln gewählte Entitäten. Werden in dieser Reihenfolge und ohne Filter geprüft."
+        },
+        "selection": {
+          "name": "Auswahl",
+          "description": "Etagen, Bereiche, Geräte oder Labels. Wird bei jeder Ausführung neu ausgewertet, neue Entitäten sind automatisch dabei."
+        },
+        "device_classes": {
+          "name": "Geräteklasse",
+          "description": "Nur Entitäten der Auswahl mit dieser Geräteklasse prüfen."
+        },
+        "domains": {
+          "name": "Entitätstyp",
+          "description": "Nur Entitäten der Auswahl dieses Typs prüfen."
         },
         "state": {
           "name": "Zustand",

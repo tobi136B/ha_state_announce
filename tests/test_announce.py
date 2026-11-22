@@ -1,11 +1,16 @@
 """Tests der reinen Logik (Liste, Platzhalter, Namen, Satzwahl)."""
 
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import area_registry as ar, entity_registry as er
+from homeassistant.helpers import (
+    area_registry as ar,
+    entity_registry as er,
+    floor_registry as fr,
+)
 
 from custom_components.state_announce.announce import (
     AnnounceResult,
     build_message,
+    collect_entities,
     evaluate,
     fill_placeholders,
     join_names,
@@ -98,4 +103,48 @@ async def test_alias_fallback_and_english(hass: HomeAssistant) -> None:
     result = evaluate(hass, ["binary_sensor.x", "binary_sensor.y"], "on", "alias")
     assert build_message(hass, result, None, "{names} open", None, False, None) == (
         "Kitchen and Bath open"
+    )
+
+
+async def test_collect_by_floor_with_filters(hass: HomeAssistant) -> None:
+    """Auswahl über Etage, gefiltert nach Geräteklasse, Diagnose fällt weg."""
+    floor = fr.async_get(hass).async_create("Obergeschoss")
+    area_a = ar.async_get(hass).async_create("Bad", floor_id=floor.floor_id)
+    area_b = ar.async_get(hass).async_create("Büro", floor_id=floor.floor_id)
+    registry = er.async_get(hass)
+
+    def _add(unique_id, area_id, name, device_class, category=None):
+        entry = registry.async_get_or_create(
+            "binary_sensor", "test", unique_id, entity_category=category
+        )
+        registry.async_update_entity(entry.entity_id, area_id=area_id)
+        hass.states.async_set(
+            entry.entity_id,
+            "on",
+            {"friendly_name": name, "device_class": device_class},
+        )
+        return entry.entity_id
+
+    window_b = _add("w_b", area_b.id, "Büro", "window")
+    window_a = _add("w_a", area_a.id, "Bad", "window")
+    _add("door", area_a.id, "Tür", "door")
+    _add("bat", area_a.id, "Batterie", "battery", er.EntityCategory.DIAGNOSTIC)
+    explicit = "binary_sensor.extra"
+    hass.states.async_set(explicit, "on", {"friendly_name": "Zusatz"})
+
+    result = collect_entities(
+        hass,
+        [explicit],
+        {"floor_id": floor.floor_id},
+        ["window", "battery"],
+        [],
+        "name",
+    )
+    # Erst die einzeln gewählte, dann alphabetisch; Tür und Batterie fehlen
+    assert result == [explicit, window_a, window_b]
+
+    # Filter Entitätstyp schließt alles außer Licht aus
+    assert (
+        collect_entities(hass, [], {"floor_id": floor.floor_id}, [], ["light"], "name")
+        == []
     )

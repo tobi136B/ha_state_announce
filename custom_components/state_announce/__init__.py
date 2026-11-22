@@ -27,11 +27,13 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.yaml import load_yaml_dict
 import voluptuous as vol
 
-from .announce import build_message, evaluate, language_texts
+from .announce import build_message, collect_entities, evaluate, language_texts
 from .const import (
     ALEXA_TYPE_TTS,
     ALEXA_TYPES,
     ATTR_ALEXA_TYPE,
+    ATTR_DEVICE_CLASSES,
+    ATTR_DOMAINS,
     ATTR_ENTITIES,
     ATTR_MESSAGE_MANY,
     ATTR_MESSAGE_NONE,
@@ -39,6 +41,7 @@ from .const import (
     ATTR_MESSAGE_UNAVAILABLE,
     ATTR_NAME_SOURCE,
     ATTR_REPORT_UNAVAILABLE,
+    ATTR_SELECTION,
     ATTR_STATE,
     ATTR_TARGETS,
     ATTR_TITLE,
@@ -56,7 +59,12 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 SERVICE_SCHEMA = vol.Schema(
     {
-        vol.Required(ATTR_ENTITIES): cv.entity_ids,
+        vol.Optional(ATTR_ENTITIES, default=list): cv.entity_ids,
+        vol.Optional(ATTR_SELECTION): vol.Any(None, vol.Schema(cv.TARGET_FIELDS)),
+        vol.Optional(ATTR_DEVICE_CLASSES, default=list): vol.All(
+            cv.ensure_list, [cv.string]
+        ),
+        vol.Optional(ATTR_DOMAINS, default=list): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional(ATTR_STATE, default="on"): cv.string,
         vol.Optional(ATTR_NAME_SOURCE, default=NAME_SOURCE_ALIAS): vol.In(NAME_SOURCES),
         vol.Optional(ATTR_MESSAGE_ONE): cv.string,
@@ -86,9 +94,22 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         # Ziele zuerst prüfen, damit Tippfehler sofort auffallen
         targets = resolve_targets(hass, call.data[ATTR_TARGETS])
 
-        result = evaluate(
+        if not call.data[ATTR_ENTITIES] and not call.data.get(ATTR_SELECTION):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="no_entities"
+            )
+
+        entity_ids = collect_entities(
             hass,
             call.data[ATTR_ENTITIES],
+            call.data.get(ATTR_SELECTION),
+            call.data[ATTR_DEVICE_CLASSES],
+            call.data[ATTR_DOMAINS],
+            call.data[ATTR_NAME_SOURCE],
+        )
+        result = evaluate(
+            hass,
+            entity_ids,
             call.data[ATTR_STATE],
             call.data[ATTR_NAME_SOURCE],
         )
