@@ -1,0 +1,69 @@
+announce:
+  fields:
+    entities:
+      required: true
+      selector:
+        entity:
+          multiple: true
+    state:
+      required: true
+      default: "on"
+      selector:
+        select:
+          options:
+            - "on"
+            - "off"
+          custom_value: true
+          translation_key: state
+    message_one:
+      example: "Das Fenster {namen} ist offen."
+      selector:
+        text:
+    message_many:
+      required: true
+      example: "Die Fenster {namen} sind offen."
+      selector:
+        text:
+    message_none:
+      example: "Alle Fenster sind zu."
+      selector:
+        text:
+    targets:
+      required: true
+      selector:
+        select:
+          options: []
+          multiple: true
+          custom_value: true
+    advanced_options:
+      collapsed: true
+      fields:
+        name_source:
+          default: alias
+          selector:
+            select:
+              options:
+                - alias
+                - name
+                - name_without_area
+              translation_key: name_source
+        title:
+          example: "Fenster"
+          selector:
+            text:
+        alexa_type:
+          default: tts
+          selector:
+            select:
+              options:
+                - tts
+                - announce
+              translation_key: alexa_type
+        report_unavailable:
+          default: false
+          selector:
+            boolean:
+        message_unavailable:
+          example: "Nicht erreichbar: {namen}."
+          selector:
+            text:

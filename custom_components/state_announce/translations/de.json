@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Zustandsansage",
+        "description": "Fügt die Aktion „Zustand ansagen“ hinzu. Du findest sie danach in jeder Automation und jedem Skript unter Aktion hinzufügen."
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "Die Zustandsansage ist bereits eingerichtet."
+    }
+  },
+  "exceptions": {
+    "not_loaded": {
+      "message": "Die Zustandsansage ist nicht eingerichtet oder deaktiviert."
+    },
+    "invalid_target": {
+      "message": "„{target}“ ist kein gültiges Ziel. Erlaubt sind nur Benachrichtigungen (notify)."
+    },
+    "unknown_target": {
+      "message": "Das Ziel „{target}“ gibt es nicht (mehr). Bitte in der Aktion neu auswählen."
+    },
+    "send_failed": {
+      "message": "Senden fehlgeschlagen an: {targets}"
+    }
+  },
+  "selector": {
+    "state": {
+      "options": {
+        "on": "Ein / Offen / Erkannt",
+        "off": "Aus / Zu / Frei"
+      }
+    },
+    "name_source": {
+      "options": {
+        "alias": "Alias, sonst Name",
+        "name": "Name",
+        "name_without_area": "Name ohne Bereich"
+      }
+    },
+    "alexa_type": {
+      "options": {
+        "tts": "Sprachausgabe",
+        "announce": "Ansage mit Gong"
+      }
+    }
+  },
+  "services": {
+    "announce": {
+      "name": "Zustand ansagen",
+      "description": "Prüft die gewählten Entitäten und sagt an, welche den gewünschten Zustand haben, z. B. welche Fenster offen sind. Ohne Template.",
+      "fields": {
+        "entities": {
+          "name": "Entitäten",
+          "description": "Die Entitäten, die geprüft werden. Die Reihenfolge hier ist auch die Reihenfolge in der Ansage."
+        },
+        "state": {
+          "name": "Zustand",
+          "description": "Welcher Zustand zählt. Fenster und Türen sind bei „Ein“ offen. Eigene Werte wie „open“ oder „home“ kannst du eintippen."
+        },
+        "message_one": {
+          "name": "Satz bei einem",
+          "description": "Wird gesagt, wenn genau eine Entität zutrifft. Platzhalter wie im Beispiel: namen in geschweiften Klammern wird durch den Namen ersetzt. Leer = Satz bei mehreren wird genommen."
+        },
+        "message_many": {
+          "name": "Satz bei mehreren",
+          "description": "Wird gesagt, wenn mehrere zutreffen. Platzhalter in geschweiften Klammern: namen wird zu „A, B und C“, anzahl zur Anzahl."
+        },
+        "message_none": {
+          "name": "Satz bei keinem",
+          "description": "Wird gesagt, wenn keine zutrifft. Leer = es wird nichts gesendet."
+        },
+        "targets": {
+          "name": "Ziele",
+          "description": "Wohin die Nachricht geht, z. B. Alexa, Handy oder Fernseher. Mehrere möglich."
+        },
+        "name_source": {
+          "name": "Namensquelle",
+          "description": "Woher der gesprochene Name kommt. Eigene Namen vergibst du als Alias an der Entität (Einstellungen der Entität, Sprachassistenten)."
+        },
+        "title": {
+          "name": "Titel",
+          "description": "Überschrift für Handy Benachrichtigungen. Alexa liest ihn nicht vor."
+        },
+        "alexa_type": {
+          "name": "Alexa Art",
+          "description": "Nur für Alexa Ziele: normale Sprachausgabe oder Ansage mit Gong."
+        },
+        "report_unavailable": {
+          "name": "Nicht erreichbare melden",
+          "description": "Sagt zusätzlich, welche Entitäten nicht erreichbar sind."
+        },
+        "message_unavailable": {
+          "name": "Satz bei nicht erreichbar",
+          "description": "Satz für nicht erreichbare Entitäten, Platzhalter wie oben. Leer = „Nicht erreichbar:“ und die Namen."
+        }
+      },
+      "sections": {
+        "advanced_options": {
+          "name": "Erweitert",
+          "description": "Namensquelle, Titel, Alexa und nicht erreichbare Geräte."
+        }
+      }
+    }
+  }
+}

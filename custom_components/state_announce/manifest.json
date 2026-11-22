@@ -1,0 +1,14 @@
+{
+  "domain": "state_announce",
+  "name": "Zustandsansage",
+  "codeowners": ["@tobi136B"],
+  "config_flow": true,
+  "dependencies": ["notify"],
+  "documentation": "https://github.com/tobi136B/ha_state_announce",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/tobi136B/ha_state_announce/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
