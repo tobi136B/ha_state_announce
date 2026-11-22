@@ -1,11 +1,17 @@
 """Tests der Aktion state_announce.announce mit echten Aufrufen."""
 
+from datetime import timedelta
+
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.service import SERVICE_DESCRIPTION_CACHE
 from homeassistant.setup import async_setup_component
+from homeassistant.util import dt as dt_util
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
+    async_fire_time_changed,
+)
 
 from custom_components.state_announce.const import DOMAIN
 
@@ -125,3 +131,20 @@ async def test_unload(hass: HomeAssistant, setup: list[ServiceCall]) -> None:
             },
             blocking=True,
         )
+
+
+async def test_target_options_follow_new_services(
+    hass: HomeAssistant, setup: list[ServiceCall]
+) -> None:
+    """Später registrierte Dienste erscheinen in der Auswahlliste."""
+
+    async def _noop(call: ServiceCall) -> None:
+        return
+
+    hass.services.async_register("notify", "alexa_media_spaeter", _noop)
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=5))
+    await hass.async_block_till_done()
+
+    description = hass.data[SERVICE_DESCRIPTION_CACHE][(DOMAIN, "announce")]
+    options = description["fields"]["targets"]["selector"]["select"]["options"]
+    assert "notify.alexa_media_spaeter" in [option["value"] for option in options]

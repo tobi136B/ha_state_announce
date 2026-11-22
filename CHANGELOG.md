@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Fix: target list was not updated after notify services or entities were added later (e.g. after a restart)
+
 ## 0.1.0
 
 - Action `state_announce.announce`

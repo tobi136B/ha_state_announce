@@ -163,12 +163,18 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: StateAnnounceConfigEntry
 ) -> bool:
     """Eintrag laden: Zielliste füllen und bei Änderungen nachführen."""
+
+    async def _async_refresh() -> None:
+        # Muss eine async Funktion sein, sonst führt der Debouncer sie
+        # im Executor aus und die Liste wird nie aktualisiert
+        await _async_update_target_options(hass)
+
     debouncer: Debouncer[None] = Debouncer(
         hass,
         _LOGGER,
         cooldown=2.0,
         immediate=False,
-        function=lambda: _async_update_target_options(hass),
+        function=_async_refresh,
     )
 
     @callback
