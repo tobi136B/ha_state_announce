@@ -1,113 +1,118 @@
 <p align="center">
-  <img src="docs/logo.png" alt="Zustandsansage" height="96">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/dark_logo.png">
+    <img src="docs/logo.png" alt="State Announce" height="96">
+  </picture>
 </p>
 
-# Zustandsansage
+# State Announce
 
-Eigene Home Assistant Integration, die ansagt, welche Entitäten einen bestimmten Zustand haben. Zum Beispiel:
+[Deutsch](README.de.md) | **English**
 
-> „Die Fenster Eltern rechts und Gäste WC sind offen.“
+A Home Assistant integration that announces which entities have a certain state. For example:
 
-Alles läuft über eine normale Aktion im UI Editor. **Kein Template nötig.**
+> “The windows Parents right and Guest WC are open.”
 
-## Funktionen
+Everything works through a normal action in the UI editor. **No templates needed.**
 
-- Aktion **„Zustand ansagen“** (`state_announce.announce`) für Automationen und Skripte
-- Eigener Satz für **einen**, **mehrere** und **keinen** Treffer (Einzahl und Mehrzahl stimmen immer)
-- Namen als lesbare Liste: „A“, „A und B“, „A, B und C“ (Deutsch „und“, Englisch „and“)
-- **Namensquelle** wählbar: Alias, Name oder Name ohne Bereich
-- **Ziele** per Auswahlliste: Alexa (Alexa Media Player), Handy, Fernseher, Wanddisplay und alle anderen Benachrichtigungen; mehrere gleichzeitig
-- Alexa: normale Sprachausgabe oder Ansage mit Gong
-- Nicht erreichbare Geräte optional mitmelden
-- Rückgabewert (Namen, Anzahl, Satz) für eigene Weiterverarbeitung
-- Deutsch und Englisch, eigenes Icon und Logo
+## Features
 
-## Voraussetzungen
+- Action **“Announce states”** (`state_announce.announce`) for automations and scripts
+- Separate sentence for **one**, **many** and **no** match, so singular and plural are always right
+- Names as a readable list: “A”, “A and B”, “A, B and C” (German “und”, English “and”)
+- Selectable **name source**: alias, name or name without area
+- **Targets** from a dropdown: Alexa (Alexa Media Player), phones, TVs, wall displays and every other notification; several at once
+- Alexa: plain text to speech or announcement with chime
+- Optionally report unreachable devices
+- Response data (names, count, sentence) for further use
+- English and German, own icon and logo
 
-- Home Assistant **2026.3** oder neuer
-- Für Alexa: die Integration [Alexa Media Player](https://github.com/alandtse/alexa_media_player)
+## Requirements
+
+- Home Assistant **2026.3** or newer
+- For Alexa: the [Alexa Media Player](https://github.com/alandtse/alexa_media_player) integration
 
 ## Installation
 
-1. In Home Assistant den Marketplace (HACS) öffnen
-2. Oben rechts das Menü (drei Punkte) öffnen, **Benutzerdefinierte Repositories**
-3. Repository `https://github.com/tobi136B/ha_state_announce`, Typ **Integration**, hinzufügen
-4. **Zustandsansage** herunterladen und Home Assistant neu starten
-5. **Einstellungen**, **Geräte & Dienste**, **Integration hinzufügen**, **Zustandsansage** auswählen und bestätigen
+1. Open the Marketplace (HACS) in Home Assistant
+2. Open the menu (three dots, top right), **Custom repositories**
+3. Add repository `https://github.com/tobi136B/ha_state_announce` with type **Integration**
+4. Download **State Announce** and restart Home Assistant
+5. **Settings**, **Devices & services**, **Add integration**, select **State Announce** and confirm
 
-## Benutzung
+## Usage
 
-In einer Automation **Aktion hinzufügen** und **Zustand ansagen** auswählen.
+In an automation, choose **Add action** and select **Announce states**.
 
-| Feld | Bedeutung |
+| Field | Meaning |
 |---|---|
-| Entitäten | Was geprüft wird. Die Reihenfolge ist auch die Reihenfolge in der Ansage. |
-| Zustand | Welcher Zustand zählt. Fenster und Türen sind bei „Ein“ offen. Eigene Werte (z. B. `open`, `home`) lassen sich eintippen. |
-| Satz bei einem | Satz, wenn genau einer zutrifft. Leer = Satz bei mehreren. |
-| Satz bei mehreren | Satz, wenn mehrere zutreffen. Pflichtfeld. |
-| Satz bei keinem | Satz, wenn keiner zutrifft. Leer = es wird nichts gesendet. |
-| Ziele | Wohin die Nachricht geht. Mehrere möglich. |
-| **Erweitert** | |
-| Namensquelle | Alias (sonst Name), Name oder Name ohne Bereich |
-| Titel | Überschrift für Handy Benachrichtigungen |
-| Alexa Art | Sprachausgabe oder Ansage mit Gong |
-| Nicht erreichbare melden | Sagt zusätzlich, welche Geräte nicht erreichbar sind |
-| Satz bei nicht erreichbar | Eigener Satz dafür, Standard: „Nicht erreichbar: …“ |
+| Entities | What gets checked. The order here is the order in the announcement. |
+| State | Which state counts. Windows and doors are open when “On”. Custom values (e.g. `open`, `home`) can be typed. |
+| Sentence for one | Used when exactly one matches. Empty = sentence for many. |
+| Sentence for many | Used when several match. Required. |
+| Sentence for none | Used when nothing matches. Empty = nothing is sent. |
+| Targets | Where the message goes. Several allowed. |
+| **Advanced** | |
+| Name source | Alias (otherwise name), name or name without area |
+| Title | Title for phone notifications |
+| Alexa type | Text to speech or announcement with chime |
+| Report unreachable | Also announces which devices are unreachable |
+| Sentence for unreachable | Own sentence for that, default: “Not reachable: …” |
 
-### Platzhalter
+### Placeholders
 
-| Platzhalter | Wird ersetzt durch |
+| Placeholder | Replaced by |
 |---|---|
-| `{namen}` oder `{names}` | die Namen, z. B. „Eltern rechts, Gäste WC und Tobi“ |
-| `{anzahl}` oder `{count}` | die Anzahl, z. B. „3“ |
+| `{names}` or `{namen}` | the names, e.g. “Parents right, Guest WC and Office” |
+| `{count}` or `{anzahl}` | the number, e.g. “3” |
 
-Das ist ein einfaches Ersetzen, kein Template.
+This is a plain text replacement, not a template.
 
-### Eigene Namen vergeben
+### Own names
 
-Mit der Namensquelle **Alias, sonst Name** sagt die Ansage den Alias der Entität. So vergibst du ihn:
+With the name source **Alias, otherwise name** the announcement uses the entity's alias. To set one:
 
-**Einstellungen**, **Geräte & Dienste**, **Entitäten**, Entität öffnen, Zahnrad, **Sprachassistenten**, **Aliase**, Alias eintragen (z. B. „Eltern rechts“).
+**Settings**, **Devices & services**, **Entities**, open the entity, gear icon, **Voice assistants**, **Aliases**, add an alias (e.g. “Parents right”).
 
-Ist kein Alias gesetzt, wird der normale Name gesagt.
+Without an alias, the normal name is used.
 
-### Beispiel (YAML Ansicht)
+### Example (YAML view)
 
 ```yaml
 action: state_announce.announce
 data:
   entities:
-    - binary_sensor.fensterkontakt_links_schlafzimmer_eltern_contact
-    - binary_sensor.fensterkontakt_rechts_schlafzimmer_eltern_contact
-    - binary_sensor.gaste_wc_fensterkontakt_gaste_wc
-    - binary_sensor.schlafzimmer_tobi_fensterkontakt_schlafzimmer_tobi
+    - binary_sensor.window_parents_left
+    - binary_sensor.window_parents_right
+    - binary_sensor.window_guest_wc
   state: "on"
-  message_one: "Das Fenster {namen} ist offen."
-  message_many: "Die Fenster {namen} sind offen."
+  message_one: "The {names} window is open."
+  message_many: "The windows {names} are open."
   targets:
-    - notify.alexa_media_alexa_kuche
+    - notify.alexa_media_kitchen
   alexa_type: tts
 ```
 
-### Rückgabewert
+### Response data
 
-Mit **Antwortvariable** in der Aktion bekommst du:
+With a **response variable** on the action you get:
 
 ```yaml
-names: ["Eltern rechts", "Gäste WC"]
+names: ["Parents right", "Guest WC"]
 count: 2
 unavailable: []
-message: "Die Fenster Eltern rechts und Gäste WC sind offen."
+message: "The windows Parents right and Guest WC are open."
 sent: true
 ```
 
-## Hinweise
+## Notes
 
-- Die Ziel Liste füllt sich automatisch mit allen Benachrichtigungen und aktualisiert sich, wenn neue dazukommen. Nach dem Hinzufügen eines Geräts einmal die Seite neu laden.
-- Fällt ein Ziel aus, bekommen die anderen ihre Nachricht trotzdem. Die Automation meldet danach einen Fehler mit dem betroffenen Ziel.
-- Haben eine Entität und ein Dienst denselben Namen, wird die Entität genommen.
+- The target list fills itself with all notifications and updates when new ones appear. After adding a device, reload the page once.
+- If one target fails, the others still get their message. The automation then reports an error naming the failed target.
+- If an entity and a service have the same name, the entity is used.
+- The language of “and” and of the default texts follows the language set in Home Assistant.
 
-## Entwicklung
+## Development
 
 ```bash
 pip install -r requirements_test.txt
@@ -115,6 +120,6 @@ pytest
 ruff check custom_components tests
 ```
 
-## Lizenz
+## License
 
 MIT

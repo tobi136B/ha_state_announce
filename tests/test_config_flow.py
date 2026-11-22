@@ -9,6 +9,7 @@ from custom_components.state_announce.const import DOMAIN
 
 async def test_user_flow(hass: HomeAssistant) -> None:
     """Einrichtung mit einem Klick, zweite Einrichtung wird abgelehnt."""
+    hass.config.language = "de"
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
     )

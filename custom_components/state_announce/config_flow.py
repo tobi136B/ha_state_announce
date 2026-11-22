@@ -7,7 +7,8 @@ from typing import Any
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 import voluptuous as vol
 
-from .const import DOMAIN, TITLE
+from .announce import language_texts
+from .const import DOMAIN
 
 
 class StateAnnounceConfigFlow(ConfigFlow, domain=DOMAIN):
@@ -20,5 +21,8 @@ class StateAnnounceConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         """Bestätigung durch den Benutzer."""
         if user_input is not None:
-            return self.async_create_entry(title=TITLE, data={})
+            # Titel in der Sprache von Home Assistant
+            return self.async_create_entry(
+                title=language_texts(self.hass)["title"], data={}
+            )
         return self.async_show_form(step_id="user", data_schema=vol.Schema({}))

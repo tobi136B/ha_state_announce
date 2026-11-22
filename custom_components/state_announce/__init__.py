@@ -31,7 +31,7 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.util.yaml import load_yaml_dict
 import voluptuous as vol
 
-from .announce import build_message, evaluate
+from .announce import build_message, evaluate, language_texts
 from .const import (
     ALEXA_TYPE_TTS,
     ALEXA_TYPES,
@@ -149,8 +149,17 @@ async def _async_base_description(hass: HomeAssistant) -> dict[str, Any]:
 async def _async_update_target_options(hass: HomeAssistant) -> None:
     """Auswahlliste der Ziele in der Aktion aktualisieren."""
     description = copy.deepcopy(await _async_base_description(hass))
-    select = description["fields"][ATTR_TARGETS]["selector"]["select"]
-    select["options"] = build_target_options(hass)
+    fields = description["fields"]
+    fields[ATTR_TARGETS]["selector"]["select"]["options"] = build_target_options(hass)
+
+    # Beispiele passend zur Sprache von Home Assistant
+    texts = language_texts(hass)
+    advanced = fields["advanced_options"]["fields"]
+    fields[ATTR_MESSAGE_ONE]["example"] = texts["example_one"]
+    fields[ATTR_MESSAGE_MANY]["example"] = texts["example_many"]
+    fields[ATTR_MESSAGE_NONE]["example"] = texts["example_none"]
+    advanced[ATTR_MESSAGE_UNAVAILABLE]["example"] = texts["example_unavailable"]
+    advanced[ATTR_TITLE]["example"] = texts["example_title"]
     async_set_service_schema(hass, DOMAIN, SERVICE_ANNOUNCE, description)
 
 

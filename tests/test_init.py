@@ -104,6 +104,10 @@ async def test_target_options(hass: HomeAssistant, setup: list[ServiceCall]) -> 
     assert "notify.alexa_media_alexa_kuche" in values
     assert "notify.mobile_app_iphone" in values
     assert "notify.send_message" not in values
+    # Beispiele in der Sprache von Home Assistant
+    assert description["fields"]["message_many"]["example"] == (
+        "Die Fenster {namen} sind offen."
+    )
 
 
 async def test_unload(hass: HomeAssistant, setup: list[ServiceCall]) -> None:

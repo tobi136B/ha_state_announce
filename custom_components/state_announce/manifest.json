@@ -1,6 +1,6 @@
 {
   "domain": "state_announce",
-  "name": "Zustandsansage",
+  "name": "State Announce",
   "categories": [
     "messaging_notifications",
     "helpers"

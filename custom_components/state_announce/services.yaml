@@ -16,16 +16,16 @@ announce:
           custom_value: true
           translation_key: state
     message_one:
-      example: "Das Fenster {namen} ist offen."
+      example: "The {names} window is open."
       selector:
         text:
     message_many:
       required: true
-      example: "Die Fenster {namen} sind offen."
+      example: "The {names} windows are open."
       selector:
         text:
     message_none:
-      example: "Alle Fenster sind zu."
+      example: "All windows are closed."
       selector:
         text:
     targets:
@@ -48,7 +48,7 @@ announce:
                 - name_without_area
               translation_key: name_source
         title:
-          example: "Fenster"
+          example: "Windows"
           selector:
             text:
         alexa_type:
@@ -64,6 +64,6 @@ announce:
           selector:
             boolean:
         message_unavailable:
-          example: "Nicht erreichbar: {namen}."
+          example: "Not reachable: {names}."
           selector:
             text:
