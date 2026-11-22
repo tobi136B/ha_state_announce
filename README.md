@@ -34,11 +34,13 @@ Everything works through a normal action in the UI editor. **No templates needed
 
 ## Installation
 
-1. Open the Marketplace (HACS) in Home Assistant
-2. Open the menu (three dots, top right), **Custom repositories**
-3. Add repository `https://github.com/tobi136B/ha_state_announce` with type **Integration**
-4. Download **State Announce** and restart Home Assistant
+1. **Settings**, **Marketplace**
+2. **Add from link** (top right)
+3. Enter `tobi136B/ha_state_announce` and select **Add** (type **Integration** if asked)
+4. Install **State Announce** (restart Home Assistant if asked)
 5. **Settings**, **Devices & services**, **Add integration**, select **State Announce** and confirm
+
+On Home Assistant before 2026.11, use HACS: menu (three dots), **Custom repositories**, add the link with type **Integration**.
 
 ## Usage
 
