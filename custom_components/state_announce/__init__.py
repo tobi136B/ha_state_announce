@@ -57,10 +57,18 @@ _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
+# Auswahl wie bei einem Ziel, inklusive "Ziel ausnehmen" (exclude, ab HA 2026.11)
+SELECTION_SCHEMA = vol.Schema(
+    {
+        **cv.TARGET_FIELDS,
+        vol.Optional("exclude"): vol.Any(None, vol.Schema(cv.TARGET_FIELDS)),
+    }
+)
+
 SERVICE_SCHEMA = vol.Schema(
     {
         vol.Optional(ATTR_ENTITIES, default=list): cv.entity_ids,
-        vol.Optional(ATTR_SELECTION): vol.Any(None, vol.Schema(cv.TARGET_FIELDS)),
+        vol.Optional(ATTR_SELECTION): vol.Any(None, SELECTION_SCHEMA),
         vol.Optional(ATTR_DEVICE_CLASSES, default=list): vol.All(
             cv.ensure_list, [cv.string]
         ),

@@ -148,3 +148,25 @@ async def test_collect_by_floor_with_filters(hass: HomeAssistant) -> None:
         collect_entities(hass, [], {"floor_id": floor.floor_id}, [], ["light"], "name")
         == []
     )
+
+
+async def test_collect_with_exclude(hass: HomeAssistant) -> None:
+    """Ausgenommene Entitäten werden nicht geprüft."""
+    area = ar.async_get(hass).async_create("Flur")
+    registry = er.async_get(hass)
+    ids = []
+    for unique_id in ("a", "b"):
+        entry = registry.async_get_or_create("binary_sensor", "test", unique_id)
+        registry.async_update_entity(entry.entity_id, area_id=area.id)
+        hass.states.async_set(entry.entity_id, "on", {"friendly_name": unique_id})
+        ids.append(entry.entity_id)
+
+    result = collect_entities(
+        hass,
+        [],
+        {"area_id": area.id, "exclude": {"entity_id": [ids[0]]}},
+        [],
+        [],
+        "name",
+    )
+    assert result == [ids[1]]

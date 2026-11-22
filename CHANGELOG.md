@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- Selection supports excluded targets (Exclude, Home Assistant 2026.11)
+
 ## 0.2.0
 
 - New field Selection: floors, areas, devices or labels, evaluated on every run

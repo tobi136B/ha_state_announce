@@ -160,6 +160,12 @@ def _matches_filters(
     return True
 
 
+def _resolve_selection(hass: HomeAssistant, selection: dict[str, Any]) -> set[str]:
+    """Etagen, Bereiche, Geräte, Labels und Entitäten in Entitäten auflösen."""
+    selected = async_extract_referenced_entity_ids(hass, TargetSelection(selection))
+    return selected.referenced | selected.indirectly_referenced
+
+
 def collect_entities(
     hass: HomeAssistant,
     entities: list[str],
@@ -180,8 +186,12 @@ def collect_entities(
     if not selection:
         return result
 
-    selected = async_extract_referenced_entity_ids(hass, TargetSelection(selection))
-    found = (selected.referenced | selected.indirectly_referenced) - set(result)
+    include = {key: value for key, value in selection.items() if key != "exclude"}
+    found = _resolve_selection(hass, include)
+    if exclude := selection.get("exclude"):
+        # "Ziel ausnehmen": ausgenommene Entitäten abziehen
+        found -= _resolve_selection(hass, exclude)
+    found -= set(result)
     registry = er.async_get(hass)
     filtered = [
         entity_id

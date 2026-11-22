@@ -54,9 +54,11 @@ There are two ways to choose what gets checked. They can be combined.
 | Field | Description |
 |---|---|
 | Entities | Individual entities. Checked in the given order, filters do not apply. |
-| Selection | Floors, areas, devices or labels. Resolved on every run, so entities added later are included automatically. |
+| Selection | Floors, areas, devices or labels, optionally with excluded targets. Resolved on every run, so entities added later are included automatically. |
 | Device class | Filter for the selection, e.g. window or door. |
 | Entity type | Filter for the selection, e.g. light or switch. |
+
+The entity count shown in the selection is the total of the floor or area. The filters are applied when the action runs.
 
 Entities found through the selection are sorted by name and follow the individually chosen ones. Disabled, hidden, diagnostic and configuration entities are skipped, so a battery sensor on a window contact is not counted as a window.
 

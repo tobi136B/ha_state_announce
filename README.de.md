@@ -54,9 +54,11 @@ Was geprüft wird, lässt sich auf zwei Wegen festlegen. Beide können kombinier
 | Feld | Beschreibung |
 |---|---|
 | Entitäten | Einzelne Entitäten. Werden in dieser Reihenfolge geprüft, Filter gelten für sie nicht. |
-| Auswahl | Etagen, Bereiche, Geräte oder Labels. Wird bei jeder Ausführung neu ausgewertet, später hinzugefügte Entitäten sind automatisch dabei. |
+| Auswahl | Etagen, Bereiche, Geräte oder Labels, optional mit ausgenommenen Zielen. Wird bei jeder Ausführung neu ausgewertet, später hinzugefügte Entitäten sind automatisch dabei. |
 | Geräteklasse | Filter für die Auswahl, z. B. Fenster oder Tür. |
 | Entitätstyp | Filter für die Auswahl, z. B. Licht oder Schalter. |
+
+Die Anzahl der Entitäten, die in der Auswahl angezeigt wird, ist die Gesamtzahl der Etage oder des Bereichs. Die Filter werden erst beim Ausführen angewendet.
 
 Über die Auswahl gefundene Entitäten werden nach Namen sortiert und folgen auf die einzeln gewählten. Deaktivierte, ausgeblendete, Diagnose und Konfigurations Entitäten werden übersprungen. Der Batteriesensor eines Fensterkontakts zählt also nicht als Fenster.
 
