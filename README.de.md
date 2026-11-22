@@ -5,114 +5,93 @@
   </picture>
 </p>
 
-# Zustandsansage (State Announce)
+# State Announce
 
-**Deutsch** | [English](README.md)
+Deutsch | [English](README.md)
 
-Eigene Home Assistant Integration, die ansagt, welche Entitäten einen bestimmten Zustand haben. Zum Beispiel:
-
-> „Die Fenster Eltern rechts und Gäste WC sind offen.“
-
-Alles läuft über eine normale Aktion im UI Editor. **Kein Template nötig.**
-
-## Funktionen
-
-- Aktion **„Zustand ansagen“** (`state_announce.announce`) für Automationen und Skripte
-- Eigener Satz für **einen**, **mehrere** und **keinen** Treffer (Einzahl und Mehrzahl stimmen immer)
-- Namen als lesbare Liste: „A“, „A und B“, „A, B und C“ (Deutsch „und“, Englisch „and“)
-- **Namensquelle** wählbar: Alias, Name oder Name ohne Bereich
-- **Ziele** per Auswahlliste: Alexa (Alexa Media Player), Handy, Fernseher, Wanddisplay und alle anderen Benachrichtigungen; mehrere gleichzeitig
-- Alexa: normale Sprachausgabe oder Ansage mit Gong
-- Nicht erreichbare Geräte optional mitmelden
-- Rückgabewert (Namen, Anzahl, Satz) für eigene Weiterverarbeitung
-- Deutsch und Englisch (folgt der Sprache von Home Assistant), eigenes Icon und Logo
+Eigene Integration für Home Assistant. Stellt die Aktion `state_announce.announce` bereit. Sie prüft eine Liste von Entitäten und sendet eine Nachricht mit allen Entitäten, die einen bestimmten Zustand haben.
 
 ## Voraussetzungen
 
-- Home Assistant **2026.3** oder neuer
-- Für Alexa: die Integration [Alexa Media Player](https://github.com/alandtse/alexa_media_player)
+- Home Assistant 2026.3 oder neuer
 
 ## Installation
 
-1. **Einstellungen**, **Marketplace**
-2. Oben rechts **Aus Link hinzufügen** (englisch „Add from link“)
-3. `tobi136B/ha_state_announce` eingeben und **Hinzufügen** (falls gefragt, Typ **Integration**)
-4. **State Announce** installieren (falls verlangt, Home Assistant neu starten)
-5. **Einstellungen**, **Geräte & Dienste**, **Integration hinzufügen**, **State Announce** auswählen und bestätigen
+Home Assistant 2026.11 oder neuer:
 
-Vor Home Assistant 2026.11 über HACS: Menü (drei Punkte), **Benutzerdefinierte Repositories**, Link mit Typ **Integration** hinzufügen.
+1. Einstellungen > Marketplace > Aus Link hinzufügen
+2. `tobi136B/ha_state_announce` eingeben, Typ Integration
+3. State Announce installieren
+4. Einstellungen > Geräte & Dienste > Integration hinzufügen > State Announce
 
-## Benutzung
+Ältere Versionen: Repository in HACS als benutzerdefiniertes Repository hinzufügen (Typ Integration).
 
-In einer Automation **Aktion hinzufügen** und **Zustand ansagen** auswählen.
+## Felder der Aktion
 
-| Feld | Bedeutung |
+| Feld | Beschreibung |
 |---|---|
-| Entitäten | Was geprüft wird. Die Reihenfolge ist auch die Reihenfolge in der Ansage. |
-| Zustand | Welcher Zustand zählt. Fenster und Türen sind bei „Ein“ offen. Eigene Werte (z. B. `open`, `home`) lassen sich eintippen. |
-| Satz bei einem | Satz, wenn genau einer zutrifft. Leer = Satz bei mehreren. |
-| Satz bei mehreren | Satz, wenn mehrere zutreffen. Pflichtfeld. |
-| Satz bei keinem | Satz, wenn keiner zutrifft. Leer = es wird nichts gesendet. |
-| Ziele | Wohin die Nachricht geht. Mehrere möglich. |
-| **Erweitert** | |
-| Namensquelle | Alias (sonst Name), Name oder Name ohne Bereich |
-| Titel | Überschrift für Handy Benachrichtigungen |
-| Alexa Art | Sprachausgabe oder Ansage mit Gong |
-| Nicht erreichbare melden | Sagt zusätzlich, welche Geräte nicht erreichbar sind |
-| Satz bei nicht erreichbar | Eigener Satz dafür, Standard: „Nicht erreichbar: …“ |
+| `entities` | Zu prüfende Entitäten. Die Reihenfolge bestimmt die Reihenfolge der Namen. |
+| `state` | Zustand, der gezählt wird. Standard `on`. |
+| `message_one` | Nachricht bei einem Treffer. Optional, sonst gilt `message_many`. |
+| `message_many` | Nachricht bei mehreren Treffern. |
+| `message_none` | Nachricht ohne Treffer. Optional, leer wird nichts gesendet. |
+| `targets` | Benachrichtigungs Entitäten oder Benachrichtigungsdienste. |
+| `name_source` | `alias`, `name` oder `name_without_area`. Standard `alias`. |
+| `title` | Titel der Benachrichtigung. Optional. |
+| `alexa_type` | `tts` oder `announce`. Nur für Ziele von Alexa Media Player. |
+| `report_unavailable` | Nicht erreichbare Entitäten anhängen. Standard `false`. |
+| `message_unavailable` | Nachricht für nicht erreichbare Entitäten. Optional. |
 
 ### Platzhalter
 
-| Platzhalter | Wird ersetzt durch |
+| Platzhalter | Wert |
 |---|---|
-| `{namen}` oder `{names}` | die Namen, z. B. „Eltern rechts, Gäste WC und Tobi“ |
-| `{anzahl}` oder `{count}` | die Anzahl, z. B. „3“ |
+| `{namen}` / `{names}` | Namen als `A`, `A und B`, `A, B und C` |
+| `{anzahl}` / `{count}` | Anzahl der Treffer |
 
-Das ist ein einfaches Ersetzen, kein Template.
+Platzhalter werden als reiner Text ersetzt. Das Verbindungswort richtet sich nach der Sprache von Home Assistant.
 
-### Eigene Namen vergeben
+### Namensquelle
 
-Mit der Namensquelle **Alias, sonst Name** sagt die Ansage den Alias der Entität. So vergibst du ihn:
+- `alias`: erster Alias der Entität, sonst ihr Name
+- `name`: Name der Entität
+- `name_without_area`: Name der Entität ohne den Namen des Bereichs
 
-**Einstellungen**, **Geräte & Dienste**, **Entitäten**, Entität öffnen, Zahnrad, **Sprachassistenten**, **Aliase**, Alias eintragen (z. B. „Eltern rechts“).
+### Ziele
 
-Ist kein Alias gesetzt, wird der normale Name gesagt.
+- Benachrichtigungs Entitäten werden über `notify.send_message` aufgerufen.
+- Benachrichtigungsdienste werden direkt aufgerufen.
+- Dienste von Alexa Media Player (`notify.alexa_media_*`) bekommen `data.type` aus `alexa_type`. Der Titel wird an sie nicht gesendet.
 
-### Beispiel (YAML Ansicht)
+Schlägt ein Ziel fehl, werden die übrigen trotzdem bedient. Danach meldet die Aktion einen Fehler.
+
+## Beispiel
 
 ```yaml
 action: state_announce.announce
 data:
   entities:
-    - binary_sensor.fensterkontakt_links_schlafzimmer_eltern_contact
-    - binary_sensor.fensterkontakt_rechts_schlafzimmer_eltern_contact
-    - binary_sensor.gaste_wc_fensterkontakt_gaste_wc
-    - binary_sensor.schlafzimmer_tobi_fensterkontakt_schlafzimmer_tobi
+    - binary_sensor.kontakt_1
+    - binary_sensor.kontakt_2
+    - binary_sensor.kontakt_3
   state: "on"
-  message_one: "Das Fenster {namen} ist offen."
-  message_many: "Die Fenster {namen} sind offen."
+  message_one: "{namen} ist offen."
+  message_many: "{anzahl} sind offen: {namen}."
   targets:
-    - notify.alexa_media_alexa_kuche
-  alexa_type: tts
+    - notify.mobile_app_telefon
 ```
 
-### Rückgabewert
+Ergebnis bei zwei Treffern: `2 sind offen: Kontakt 1 und Kontakt 3.`
 
-Mit **Antwortvariable** in der Aktion bekommst du:
+## Rückgabe
 
 ```yaml
-names: ["Eltern rechts", "Gäste WC"]
+names: ["Kontakt 1", "Kontakt 3"]
 count: 2
 unavailable: []
-message: "Die Fenster Eltern rechts und Gäste WC sind offen."
+message: "2 sind offen: Kontakt 1 und Kontakt 3."
 sent: true
 ```
-
-## Hinweise
-
-- Die Ziel Liste füllt sich automatisch mit allen Benachrichtigungen und aktualisiert sich, wenn neue dazukommen. Nach dem Hinzufügen eines Geräts einmal die Seite neu laden.
-- Fällt ein Ziel aus, bekommen die anderen ihre Nachricht trotzdem. Die Automation meldet danach einen Fehler mit dem betroffenen Ziel.
-- Haben eine Entität und ein Dienst denselben Namen, wird die Entität genommen.
 
 ## Entwicklung
 

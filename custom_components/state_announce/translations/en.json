@@ -3,32 +3,32 @@
     "step": {
       "user": {
         "title": "State Announce",
-        "description": "Adds the action “Announce states”. You will find it in every automation and script under Add action."
+        "description": "Provides the action Announce states."
       }
     },
     "abort": {
-      "single_instance_allowed": "State Announce is already set up."
+      "single_instance_allowed": "Already configured."
     }
   },
   "exceptions": {
     "not_loaded": {
-      "message": "State Announce is not set up or is disabled."
+      "message": "State Announce is not loaded."
     },
     "invalid_target": {
-      "message": "“{target}” is not a valid target. Only notifications (notify) are allowed."
+      "message": "Invalid target: {target}. Only notifications are allowed."
     },
     "unknown_target": {
-      "message": "The target “{target}” does not exist (anymore). Please select it again in the action."
+      "message": "Target not found: {target}."
     },
     "send_failed": {
-      "message": "Sending failed for: {targets}"
+      "message": "Sending failed: {targets}."
     }
   },
   "selector": {
     "state": {
       "options": {
-        "on": "On / Open / Detected",
-        "off": "Off / Closed / Clear"
+        "on": "On",
+        "off": "Off"
       }
     },
     "name_source": {
@@ -41,64 +41,63 @@
     "alexa_type": {
       "options": {
         "tts": "Text to speech",
-        "announce": "Announcement with chime"
+        "announce": "Announcement"
       }
     }
   },
   "services": {
     "announce": {
       "name": "Announce states",
-      "description": "Checks the selected entities and announces which of them have the wanted state, e.g. which windows are open. No templates needed.",
+      "description": "Sends a message listing all entities that have the selected state.",
       "fields": {
         "entities": {
           "name": "Entities",
-          "description": "The entities to check. Their order is also the order in the announcement."
+          "description": "Entities to check. Their order defines the order of the names."
         },
         "state": {
           "name": "State",
-          "description": "Which state counts. Windows and doors are open when “On”. You can type custom values like “open” or “home”."
+          "description": "State that is counted. Other values can be entered."
         },
         "message_one": {
-          "name": "Sentence for one",
-          "description": "Used when exactly one entity matches. Placeholder as in the example: names in curly braces is replaced by its name. Empty = sentence for many is used."
+          "name": "Message for one match",
+          "description": "Empty: the message for multiple matches is used."
         },
         "message_many": {
-          "name": "Sentence for many",
-          "description": "Used when several match. Placeholders in curly braces: names becomes “A, B and C”, count the number."
+          "name": "Message for multiple matches",
+          "description": "Placeholders: names and count in curly braces."
         },
         "message_none": {
-          "name": "Sentence for none",
-          "description": "Used when none matches. Empty = nothing is sent."
+          "name": "Message for no match",
+          "description": "Empty: nothing is sent."
         },
         "targets": {
           "name": "Targets",
-          "description": "Where the message goes, e.g. Alexa, phone or TV. Multiple allowed."
+          "description": "Notifications to send to."
         },
         "name_source": {
           "name": "Name source",
-          "description": "Where the spoken name comes from. Set your own names as an alias on the entity (entity settings, voice assistants)."
+          "description": "Source of the names in the message."
         },
         "title": {
           "name": "Title",
-          "description": "Title for phone notifications. Alexa does not read it."
+          "description": "Notification title, if the target supports one."
         },
         "alexa_type": {
-          "name": "Alexa type",
-          "description": "Only for Alexa targets: normal text to speech or announcement with chime."
+          "name": "Alexa output",
+          "description": "Only for Alexa Media Player targets."
         },
         "report_unavailable": {
-          "name": "Report unreachable",
-          "description": "Additionally announces which entities are unreachable."
+          "name": "Report unavailable",
+          "description": "Append unavailable entities to the message."
         },
         "message_unavailable": {
-          "name": "Sentence for unreachable",
-          "description": "Sentence for unreachable entities, placeholders as above. Empty = “Not reachable:” followed by the names."
+          "name": "Message for unavailable",
+          "description": "Empty: default text is used."
         }
       },
       "sections": {
         "advanced_options": {
-          "name": "Advanced",
-          "description": "Name source, title, Alexa and unreachable devices."
+          "name": "Advanced options"
         }
       }
     }

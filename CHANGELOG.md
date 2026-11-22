@@ -1,10 +1,10 @@
-# Änderungen
+# Changelog
 
 ## 0.1.0
 
-- Erste Version
-- Aktion „Zustand ansagen“ mit Satz bei einem, mehreren und keinem
-- Namensquelle Alias, Name oder Name ohne Bereich
-- Ziele: Benachrichtigungs Entitäten und Benachrichtigungsdienste, Alexa Media Player mit Ausgabeart
-- Nicht erreichbare Geräte optional mitmelden
-- Rückgabewert mit Namen, Anzahl und Satz
+- Action `state_announce.announce`
+- Messages for one, multiple and no match with placeholders for names and count
+- Name source: alias, name, name without area
+- Targets: notify entities and notify services, Alexa Media Player output type
+- Optional reporting of unavailable entities
+- Response data

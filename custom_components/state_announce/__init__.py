@@ -1,8 +1,4 @@
-"""Zustandsansage: sagt an, welche Entitäten einen bestimmten Zustand haben.
-
-Beispiel: "Die Fenster Eltern rechts und Gäste WC sind offen."
-Ohne Template, komplett über den UI Editor bedienbar.
-"""
+"""State Announce: Nachricht mit allen Entitäten, die einen Zustand haben."""
 
 from __future__ import annotations
 

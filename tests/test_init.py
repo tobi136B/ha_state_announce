@@ -106,7 +106,7 @@ async def test_target_options(hass: HomeAssistant, setup: list[ServiceCall]) -> 
     assert "notify.send_message" not in values
     # Beispiele in der Sprache von Home Assistant
     assert description["fields"]["message_many"]["example"] == (
-        "Die Fenster {namen} sind offen."
+        "{anzahl} eingeschaltet: {namen}."
     )
 
 

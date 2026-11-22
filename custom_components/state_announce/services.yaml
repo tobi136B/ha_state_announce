@@ -16,16 +16,16 @@ announce:
           custom_value: true
           translation_key: state
     message_one:
-      example: "The {names} window is open."
+      example: "{names} is on."
       selector:
         text:
     message_many:
       required: true
-      example: "The {names} windows are open."
+      example: "{count} on: {names}."
       selector:
         text:
     message_none:
-      example: "All windows are closed."
+      example: "Nothing is on."
       selector:
         text:
     targets:
@@ -48,7 +48,7 @@ announce:
                 - name_without_area
               translation_key: name_source
         title:
-          example: "Windows"
+          example: "Status"
           selector:
             text:
         alexa_type:
