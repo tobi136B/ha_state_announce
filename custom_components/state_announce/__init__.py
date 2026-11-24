@@ -32,6 +32,7 @@ from .const import (
     ALEXA_TYPE_TTS,
     ALEXA_TYPES,
     ATTR_ALEXA_TYPE,
+    ATTR_COMPARISON,
     ATTR_DEVICE_CLASSES,
     ATTR_DOMAINS,
     ATTR_ENTITIES,
@@ -45,13 +46,22 @@ from .const import (
     ATTR_STATE,
     ATTR_TARGETS,
     ATTR_TITLE,
+    ATTR_TTS_ENGINE,
+    COMPARISON_EQUAL,
+    COMPARISONS,
     DATA_BASE_DESCRIPTION,
     DOMAIN,
+    MEDIA_PLAYER_DOMAIN,
     NAME_SOURCE_ALIAS,
     NAME_SOURCES,
     SERVICE_ANNOUNCE,
 )
-from .targets import build_target_options, resolve_targets, send_to_targets
+from .targets import (
+    build_target_options,
+    resolve_targets,
+    resolve_tts_engine,
+    send_to_targets,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -74,6 +84,7 @@ SERVICE_SCHEMA = vol.Schema(
         ),
         vol.Optional(ATTR_DOMAINS, default=list): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional(ATTR_STATE, default="on"): cv.string,
+        vol.Optional(ATTR_COMPARISON, default=COMPARISON_EQUAL): vol.In(COMPARISONS),
         vol.Optional(ATTR_NAME_SOURCE, default=NAME_SOURCE_ALIAS): vol.In(NAME_SOURCES),
         vol.Optional(ATTR_MESSAGE_ONE): cv.string,
         vol.Required(ATTR_MESSAGE_MANY): cv.string,
@@ -83,6 +94,7 @@ SERVICE_SCHEMA = vol.Schema(
         vol.Required(ATTR_TARGETS): vol.All(cv.ensure_list, [cv.string]),
         vol.Optional(ATTR_TITLE): cv.string,
         vol.Optional(ATTR_ALEXA_TYPE, default=ALEXA_TYPE_TTS): vol.In(ALEXA_TYPES),
+        vol.Optional(ATTR_TTS_ENGINE): cv.entity_id,
     }
 )
 
@@ -101,6 +113,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         # Ziele zuerst prüfen, damit Tippfehler sofort auffallen
         targets = resolve_targets(hass, call.data[ATTR_TARGETS])
+        tts_engine = resolve_tts_engine(hass, targets, call.data.get(ATTR_TTS_ENGINE))
 
         if not call.data[ATTR_ENTITIES] and not call.data.get(ATTR_SELECTION):
             raise ServiceValidationError(
@@ -120,6 +133,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             entity_ids,
             call.data[ATTR_STATE],
             call.data[ATTR_NAME_SOURCE],
+            call.data[ATTR_COMPARISON],
         )
         result.message = build_message(
             hass,
@@ -139,6 +153,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 result.message,
                 call.data.get(ATTR_TITLE),
                 call.data[ATTR_ALEXA_TYPE],
+                tts_engine,
             )
             sent = True
 
@@ -214,7 +229,7 @@ async def async_setup_entry(
     @callback
     def _registry_changed(event: Event[er.EventEntityRegistryUpdatedData]) -> None:
         entity_id = event.data.get("entity_id", "")
-        if entity_id.startswith(f"{NOTIFY_DOMAIN}."):
+        if entity_id.startswith((f"{NOTIFY_DOMAIN}.", f"{MEDIA_PLAYER_DOMAIN}.")):
             debouncer.async_schedule_call()
 
     @callback

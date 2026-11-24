@@ -1,8 +1,9 @@
 """Ziele der Ansage: Auswahlliste bauen und Nachrichten senden.
 
-Unterstützt werden
-- Benachrichtigungs Entitäten (notify.xyz als Entität, z. B. Handy, Wanddisplay)
-- klassische Benachrichtigungsdienste (notify.xyz als Dienst, z. B. Alexa, LG TV)
+Drei Arten von Zielen werden unterstützt:
+- Benachrichtigungs Entitäten (notify.*), z. B. Handy App, Fernseher, Wanddisplay
+- Benachrichtigungsdienste (notify.*), z. B. Alexa Media Player, ältere Integrationen
+- Lautsprecher (media_player.*), Ausgabe als Sprache über eine TTS Engine
 """
 
 from __future__ import annotations
@@ -15,22 +16,31 @@ from typing import Any
 from homeassistant.components.notify import DOMAIN as NOTIFY_DOMAIN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 
 from .announce import language_texts
-from .const import ALEXA_SERVICE_PREFIX, DOMAIN, EXCLUDED_NOTIFY_SERVICES
+from .const import (
+    ALEXA_PLATFORM,
+    ALEXA_SERVICE_PREFIX,
+    DOMAIN,
+    EXCLUDED_NOTIFY_SERVICES,
+    MEDIA_PLAYER_DOMAIN,
+    TTS_DOMAIN,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
 KIND_ENTITY = "entity"
 KIND_SERVICE = "service"
+KIND_SPEAKER = "speaker"
 
 
 @dataclass(frozen=True)
 class Target:
     """Ein aufgelöstes Ziel."""
 
-    value: str  # z. B. notify.iphone_von_tobias
-    kind: str  # KIND_ENTITY oder KIND_SERVICE
+    value: str  # z. B. notify.mobile_app_phone oder media_player.kitchen
+    kind: str  # KIND_ENTITY, KIND_SERVICE oder KIND_SPEAKER
 
     @property
     def object_id(self) -> str:
@@ -46,18 +56,13 @@ class Target:
 
 
 def _normalize(value: str) -> str:
-    """Eingabe auf die Form notify.xyz bringen."""
+    """Eingabe ohne Domain als notify.xyz verstehen."""
     value = value.strip()
     return value if "." in value else f"{NOTIFY_DOMAIN}.{value}"
 
 
-def _notify_entities(hass: HomeAssistant) -> list[str]:
-    """Alle Benachrichtigungs Entitäten."""
-    return sorted(hass.states.async_entity_ids(NOTIFY_DOMAIN))
-
-
 def _notify_services(hass: HomeAssistant) -> list[str]:
-    """Alle klassischen Benachrichtigungsdienste, die als Ziel taugen."""
+    """Benachrichtigungsdienste, die als Ziel taugen."""
     services = hass.services.async_services_for_domain(NOTIFY_DOMAIN)
     return sorted(
         f"{NOTIFY_DOMAIN}.{name}"
@@ -66,56 +71,88 @@ def _notify_services(hass: HomeAssistant) -> list[str]:
     )
 
 
-def build_target_options(hass: HomeAssistant) -> list[dict[str, str]]:
-    """Auswahlliste für das Feld Ziele bauen (Entitäten zuerst)."""
-    texts = language_texts(hass)
-    options: list[dict[str, str]] = []
+def _speakers(hass: HomeAssistant) -> list[str]:
+    """Media Player, die sich für Sprachausgabe eignen.
 
-    entity_options = []
-    for entity_id in _notify_entities(hass):
-        state = hass.states.get(entity_id)
-        name = state.name if state is not None else entity_id
-        entity_options.append(
-            {"value": entity_id, "label": f"{name} ({texts['entity']})"}
-        )
-    options.extend(sorted(entity_options, key=lambda item: item["label"].lower()))
-
-    entity_ids = {option["value"] for option in entity_options}
-    for service in _notify_services(hass):
-        # Gleicher Name wie eine Entität: die Entität hat Vorrang
-        if service in entity_ids:
+    Geräte von Alexa Media Player werden ausgelassen, sie sind schon
+    über ihre Benachrichtigungsdienste erreichbar und unterstützen
+    die normale Sprachausgabe von Home Assistant nicht.
+    """
+    registry = er.async_get(hass)
+    speakers = []
+    for entity_id in hass.states.async_entity_ids(MEDIA_PLAYER_DOMAIN):
+        entry = registry.async_get(entity_id)
+        if entry is not None and entry.platform == ALEXA_PLATFORM:
             continue
-        options.append(
+        speakers.append(entity_id)
+    return speakers
+
+
+def _name(hass: HomeAssistant, entity_id: str) -> str:
+    state = hass.states.get(entity_id)
+    return state.name if state is not None else entity_id
+
+
+def build_target_options(hass: HomeAssistant) -> list[dict[str, str]]:
+    """Auswahlliste für das Feld Ziele bauen."""
+    texts = language_texts(hass)
+
+    def _sorted(items: list[dict[str, str]]) -> list[dict[str, str]]:
+        return sorted(items, key=lambda item: item["label"].lower())
+
+    notify_entities = hass.states.async_entity_ids(NOTIFY_DOMAIN)
+    options = _sorted(
+        [
             {
-                "value": service,
-                "label": f"{service.split('.', 1)[1]} ({texts['service']})",
+                "value": entity_id,
+                "label": f"{_name(hass, entity_id)} ({texts['kind_notify']})",
             }
-        )
+            for entity_id in notify_entities
+        ]
+    )
+    options += _sorted(
+        [
+            {
+                "value": entity_id,
+                "label": f"{_name(hass, entity_id)} ({texts['kind_speaker']})",
+            }
+            for entity_id in _speakers(hass)
+        ]
+    )
+    # Gleicher Name wie eine Entität: die Entität hat Vorrang
+    options += [
+        {
+            "value": service,
+            "label": f"{service.split('.', 1)[1]} ({texts['kind_service']})",
+        }
+        for service in _notify_services(hass)
+        if service not in notify_entities
+    ]
     return options
 
 
 def resolve_targets(hass: HomeAssistant, values: list[str]) -> list[Target]:
     """Eingaben in Ziele umwandeln. Unbekannte Ziele lösen einen Fehler aus."""
     targets: list[Target] = []
-    seen: set[str] = set()
-    for raw in values:
+    for raw in dict.fromkeys(values):
         value = _normalize(raw)
-        if value in seen:
-            continue
-        seen.add(value)
         domain, _, object_id = value.partition(".")
-        if domain != NOTIFY_DOMAIN or not object_id:
+        if domain == MEDIA_PLAYER_DOMAIN and hass.states.get(value) is not None:
+            targets.append(Target(value, KIND_SPEAKER))
+        elif domain == NOTIFY_DOMAIN and hass.states.get(value) is not None:
+            targets.append(Target(value, KIND_ENTITY))
+        elif (
+            domain == NOTIFY_DOMAIN
+            and object_id not in EXCLUDED_NOTIFY_SERVICES
+            and hass.services.has_service(NOTIFY_DOMAIN, object_id)
+        ):
+            targets.append(Target(value, KIND_SERVICE))
+        elif domain not in (NOTIFY_DOMAIN, MEDIA_PLAYER_DOMAIN):
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="invalid_target",
                 translation_placeholders={"target": raw},
             )
-        if hass.states.get(value) is not None:
-            targets.append(Target(value, KIND_ENTITY))
-        elif object_id not in EXCLUDED_NOTIFY_SERVICES and hass.services.has_service(
-            NOTIFY_DOMAIN, object_id
-        ):
-            targets.append(Target(value, KIND_SERVICE))
         else:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
@@ -125,14 +162,53 @@ def resolve_targets(hass: HomeAssistant, values: list[str]) -> list[Target]:
     return targets
 
 
+def resolve_tts_engine(
+    hass: HomeAssistant, targets: list[Target], engine: str | None
+) -> str | None:
+    """TTS Engine für Lautsprecher Ziele bestimmen.
+
+    Ohne Angabe wird die erste vorhandene Engine genommen.
+    """
+    if not any(target.kind == KIND_SPEAKER for target in targets):
+        return None
+    if engine:
+        if hass.states.get(engine) is None:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="unknown_tts_engine",
+                translation_placeholders={"engine": engine},
+            )
+        return engine
+    engines = sorted(hass.states.async_entity_ids(TTS_DOMAIN))
+    if not engines:
+        raise ServiceValidationError(
+            translation_domain=DOMAIN, translation_key="no_tts_engine"
+        )
+    return engines[0]
+
+
 async def _send_one(
     hass: HomeAssistant,
     target: Target,
     message: str,
     title: str | None,
     alexa_type: str,
+    tts_engine: str | None,
 ) -> None:
     """Nachricht an ein einzelnes Ziel senden."""
+    if target.kind == KIND_SPEAKER:
+        await hass.services.async_call(
+            TTS_DOMAIN,
+            "speak",
+            {
+                "entity_id": tts_engine,
+                "media_player_entity_id": target.value,
+                "message": message,
+            },
+            blocking=True,
+        )
+        return
+
     if target.kind == KIND_ENTITY:
         data: dict[str, Any] = {"entity_id": target.value, "message": message}
         if title:
@@ -157,14 +233,18 @@ async def send_to_targets(
     message: str,
     title: str | None,
     alexa_type: str,
+    tts_engine: str | None,
 ) -> None:
     """An alle Ziele gleichzeitig senden.
 
     Fällt ein Ziel aus, bekommen die anderen ihre Nachricht trotzdem.
-    Am Ende wird ein gesammelter Fehler gemeldet.
+    Danach wird ein gesammelter Fehler gemeldet.
     """
     results = await asyncio.gather(
-        *(_send_one(hass, target, message, title, alexa_type) for target in targets),
+        *(
+            _send_one(hass, target, message, title, alexa_type, tts_engine)
+            for target in targets
+        ),
         return_exceptions=True,
     )
     failed: list[str] = []

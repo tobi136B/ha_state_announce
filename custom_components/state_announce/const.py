@@ -16,6 +16,7 @@ ATTR_SELECTION: Final = "selection"
 ATTR_DEVICE_CLASSES: Final = "device_classes"
 ATTR_DOMAINS: Final = "domains"
 ATTR_STATE: Final = "state"
+ATTR_COMPARISON: Final = "comparison"
 ATTR_NAME_SOURCE: Final = "name_source"
 ATTR_MESSAGE_ONE: Final = "message_one"
 ATTR_MESSAGE_MANY: Final = "message_many"
@@ -25,6 +26,7 @@ ATTR_MESSAGE_UNAVAILABLE: Final = "message_unavailable"
 ATTR_TARGETS: Final = "targets"
 ATTR_TITLE: Final = "title"
 ATTR_ALEXA_TYPE: Final = "alexa_type"
+ATTR_TTS_ENGINE: Final = "tts_engine"
 
 # Auswahl für den Filter Geräteklasse (eigene Werte sind zusätzlich erlaubt)
 DEVICE_CLASS_OPTIONS: Final = [
@@ -64,6 +66,18 @@ DOMAIN_OPTIONS: Final = [
     "sensor",
 ]
 
+# Vergleich des Zustands
+COMPARISON_EQUAL: Final = "equal"
+COMPARISON_NOT_EQUAL: Final = "not_equal"
+COMPARISON_ABOVE: Final = "above"
+COMPARISON_BELOW: Final = "below"
+COMPARISONS: Final = [
+    COMPARISON_EQUAL,
+    COMPARISON_NOT_EQUAL,
+    COMPARISON_ABOVE,
+    COMPARISON_BELOW,
+]
+
 # Namensquellen
 NAME_SOURCE_ALIAS: Final = "alias"
 NAME_SOURCE_NAME: Final = "name"
@@ -88,8 +102,13 @@ PLACEHOLDERS_COUNT: Final = ("{anzahl}", "{count}")
 # alexa_media ohne Gerät braucht zwingend ein extra Ziel.
 EXCLUDED_NOTIFY_SERVICES: Final = {"send_message", "alexa_media"}
 
-# Präfix der Dienste von Alexa Media Player
+# Alexa Media Player: Präfix der Dienste und Name der Plattform
 ALEXA_SERVICE_PREFIX: Final = "alexa_media"
+ALEXA_PLATFORM: Final = "alexa_media"
+
+# Domains für Lautsprecher Ziele
+MEDIA_PLAYER_DOMAIN: Final = "media_player"
+TTS_DOMAIN: Final = "tts"
 
 # Speicherort in hass.data
 DATA_BASE_DESCRIPTION: Final = f"{DOMAIN}_base_description"
@@ -99,8 +118,9 @@ LANGUAGE_TEXTS: Final[dict[str, dict[str, str]]] = {
     "de": {
         "and": "und",
         "unavailable": "Nicht erreichbar: {namen}.",
-        "entity": "Entität",
-        "service": "Dienst",
+        "kind_notify": "Benachrichtigung",
+        "kind_service": "Benachrichtigungsdienst",
+        "kind_speaker": "Lautsprecher",
         "title": "Zustandsansage",
         "example_one": "{namen} ist eingeschaltet.",
         "example_many": "{anzahl} eingeschaltet: {namen}.",
@@ -111,8 +131,9 @@ LANGUAGE_TEXTS: Final[dict[str, dict[str, str]]] = {
     "en": {
         "and": "and",
         "unavailable": "Not reachable: {names}.",
-        "entity": "entity",
-        "service": "service",
+        "kind_notify": "notification",
+        "kind_service": "notification service",
+        "kind_speaker": "speaker",
         "title": "State Announce",
         "example_one": "{names} is on.",
         "example_many": "{count} on: {names}.",

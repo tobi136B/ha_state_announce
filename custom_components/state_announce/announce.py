@@ -25,6 +25,10 @@ except ImportError:  # ältere Versionen von Home Assistant
 from homeassistant.helpers.target import async_extract_referenced_entity_ids
 
 from .const import (
+    COMPARISON_ABOVE,
+    COMPARISON_BELOW,
+    COMPARISON_EQUAL,
+    COMPARISON_NOT_EQUAL,
     DEFAULT_LANGUAGE,
     LANGUAGE_TEXTS,
     NAME_SOURCE_ALIAS,
@@ -206,24 +210,46 @@ def collect_entities(
     return result + filtered
 
 
+def _to_number(value: str) -> float | None:
+    """Zahl aus einem Zustand lesen, Komma als Dezimaltrenner erlaubt."""
+    try:
+        return float(value.strip().replace(",", "."))
+    except ValueError:
+        return None
+
+
+def state_matches(current: str, wanted: str, comparison: str) -> bool:
+    """Einen Zustand mit dem gesuchten Wert vergleichen.
+
+    Bei "größer" und "kleiner" zählen nur Zustände, die eine Zahl sind.
+    """
+    if comparison in (COMPARISON_ABOVE, COMPARISON_BELOW):
+        value, limit = _to_number(current), _to_number(wanted)
+        if value is None or limit is None:
+            return False
+        return value > limit if comparison == COMPARISON_ABOVE else value < limit
+    equal = current.strip().lower() == wanted.strip().lower()
+    return not equal if comparison == COMPARISON_NOT_EQUAL else equal
+
+
 def evaluate(
     hass: HomeAssistant,
     entity_ids: list[str],
     wanted_state: str,
     name_source: str,
+    comparison: str = COMPARISON_EQUAL,
 ) -> AnnounceResult:
     """Entitäten prüfen und Treffer sowie nicht erreichbare sammeln.
 
     Die Reihenfolge entspricht der Reihenfolge in der Aktion.
     """
     result = AnnounceResult()
-    wanted = wanted_state.strip().lower()
     for entity_id in entity_ids:
         state = hass.states.get(entity_id)
         if state is None or state.state in UNAVAILABLE_STATES:
             result.unavailable.append(resolve_name(hass, entity_id, name_source))
             continue
-        if state.state.lower() == wanted:
+        if state_matches(state.state, wanted_state, comparison):
             result.names.append(resolve_name(hass, entity_id, name_source))
     return result
 

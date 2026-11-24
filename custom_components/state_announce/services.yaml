@@ -61,6 +61,16 @@ announce:
             - "off"
           custom_value: true
           translation_key: state
+    comparison:
+      default: equal
+      selector:
+        select:
+          options:
+            - equal
+            - not_equal
+            - above
+            - below
+          translation_key: comparison
     message_one:
       example: "{names} is on."
       selector:
@@ -93,6 +103,10 @@ announce:
                 - name
                 - name_without_area
               translation_key: name_source
+        tts_engine:
+          selector:
+            entity:
+              domain: tts
         title:
           example: "Status"
           selector:

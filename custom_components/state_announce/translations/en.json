@@ -15,7 +15,7 @@
       "message": "State Announce is not loaded."
     },
     "invalid_target": {
-      "message": "Invalid target: {target}. Only notifications are allowed."
+      "message": "Invalid target: {target}. Notifications and speakers are allowed."
     },
     "unknown_target": {
       "message": "Target not found: {target}."
@@ -25,6 +25,12 @@
     },
     "no_entities": {
       "message": "No entities selected. Fill in entities or selection."
+    },
+    "unknown_tts_engine": {
+      "message": "Text to speech engine not found: {engine}."
+    },
+    "no_tts_engine": {
+      "message": "Speakers need a text to speech engine, but none is set up."
     }
   },
   "selector": {
@@ -84,12 +90,20 @@
         "input_boolean": "Toggle (helper)",
         "sensor": "Sensor"
       }
+    },
+    "comparison": {
+      "options": {
+        "equal": "is equal to",
+        "not_equal": "is not equal to",
+        "above": "is above",
+        "below": "is below"
+      }
     }
   },
   "services": {
     "announce": {
       "name": "Announce states",
-      "description": "Sends a message listing all entities that have the selected state.",
+      "description": "Checks entities and announces which of them have a given state. The message goes to notifications or is spoken on speakers.",
       "fields": {
         "entities": {
           "name": "Entities",
@@ -109,7 +123,11 @@
         },
         "state": {
           "name": "State",
-          "description": "State that is counted. Other values can be entered."
+          "description": "State or number to look for. Custom values like home, open or 20 can be entered."
+        },
+        "comparison": {
+          "name": "Comparison",
+          "description": "How the state is compared. Above and below only apply to numbers, e.g. battery below 20."
         },
         "message_one": {
           "name": "Message for one match",
@@ -125,11 +143,15 @@
         },
         "targets": {
           "name": "Targets",
-          "description": "Notifications to send to."
+          "description": "Notifications, notification services or speakers. Multiple allowed."
         },
         "name_source": {
           "name": "Name source",
           "description": "Source of the names in the message."
+        },
+        "tts_engine": {
+          "name": "Text to speech engine",
+          "description": "For speaker targets. Empty: the first available engine."
         },
         "title": {
           "name": "Title",

@@ -15,7 +15,7 @@
       "message": "Zustandsansage ist nicht geladen."
     },
     "invalid_target": {
-      "message": "Ungültiges Ziel: {target}. Nur Benachrichtigungen sind erlaubt."
+      "message": "Ungültiges Ziel: {target}. Erlaubt sind Benachrichtigungen und Lautsprecher."
     },
     "unknown_target": {
       "message": "Ziel nicht gefunden: {target}."
@@ -25,6 +25,12 @@
     },
     "no_entities": {
       "message": "Keine Entitäten gewählt. Entitäten oder Auswahl ausfüllen."
+    },
+    "unknown_tts_engine": {
+      "message": "Sprachausgabe Engine nicht gefunden: {engine}."
+    },
+    "no_tts_engine": {
+      "message": "Für Lautsprecher wird eine Sprachausgabe Engine benötigt, es ist aber keine eingerichtet."
     }
   },
   "selector": {
@@ -84,12 +90,20 @@
         "input_boolean": "Umschalter (Helfer)",
         "sensor": "Sensor"
       }
+    },
+    "comparison": {
+      "options": {
+        "equal": "ist gleich",
+        "not_equal": "ist nicht gleich",
+        "above": "größer als",
+        "below": "kleiner als"
+      }
     }
   },
   "services": {
     "announce": {
       "name": "Zustand ansagen",
-      "description": "Sendet eine Nachricht mit allen Entitäten, die den gewählten Zustand haben.",
+      "description": "Prüft Entitäten und sagt an, welche einen bestimmten Zustand haben. Die Nachricht geht an Benachrichtigungen oder als Sprache an Lautsprecher.",
       "fields": {
         "entities": {
           "name": "Entitäten",
@@ -109,7 +123,11 @@
         },
         "state": {
           "name": "Zustand",
-          "description": "Zustand, der gezählt wird. Andere Werte können eingegeben werden."
+          "description": "Gesuchter Zustand oder Zahlenwert. Eigene Werte wie home, open oder 20 können eingegeben werden."
+        },
+        "comparison": {
+          "name": "Vergleich",
+          "description": "Wie der Zustand verglichen wird. Größer und kleiner gelten nur für Zahlen, z. B. Batterie unter 20."
         },
         "message_one": {
           "name": "Nachricht bei einem Treffer",
@@ -125,11 +143,15 @@
         },
         "targets": {
           "name": "Ziele",
-          "description": "Benachrichtigungen, an die gesendet wird."
+          "description": "Benachrichtigungen, Benachrichtigungsdienste oder Lautsprecher. Mehrere möglich."
         },
         "name_source": {
           "name": "Namensquelle",
           "description": "Herkunft der Namen in der Nachricht."
+        },
+        "tts_engine": {
+          "name": "Sprachausgabe Engine",
+          "description": "Für Lautsprecher Ziele. Leer: die erste vorhandene Engine."
         },
         "title": {
           "name": "Titel",

@@ -187,3 +187,52 @@ async def test_announce_by_selection(
     )
     assert response["names"] == ["Flur"]
     assert setup[0].data["message"] == "1 offen: Flur"
+
+
+async def test_announce_to_speaker(
+    hass: HomeAssistant, setup: list[ServiceCall]
+) -> None:
+    """Lautsprecher bekommen die Nachricht als Sprache über tts.speak."""
+    spoken: list[ServiceCall] = []
+
+    async def _speak(call: ServiceCall) -> None:
+        spoken.append(call)
+
+    hass.services.async_register("tts", "speak", _speak)
+    hass.states.async_set("tts.engine", "unknown")
+    hass.states.async_set("media_player.kitchen", "idle")
+
+    await hass.services.async_call(
+        DOMAIN,
+        "announce",
+        {
+            "entities": ["binary_sensor.a"],
+            "message_one": "{namen} erkannt",
+            "message_many": "{namen} erkannt",
+            "targets": ["media_player.kitchen"],
+        },
+        blocking=True,
+    )
+    assert spoken[0].data == {
+        "entity_id": "tts.engine",
+        "media_player_entity_id": "media_player.kitchen",
+        "message": "Eltern rechts erkannt",
+    }
+
+
+async def test_speaker_without_engine(
+    hass: HomeAssistant, setup: list[ServiceCall]
+) -> None:
+    """Ohne TTS Engine gibt es eine verständliche Fehlermeldung."""
+    hass.states.async_set("media_player.kitchen", "idle")
+    with pytest.raises(ServiceValidationError):
+        await hass.services.async_call(
+            DOMAIN,
+            "announce",
+            {
+                "entities": ["binary_sensor.a"],
+                "message_many": "{namen}",
+                "targets": ["media_player.kitchen"],
+            },
+            blocking=True,
+        )

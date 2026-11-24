@@ -14,6 +14,7 @@ from custom_components.state_announce.announce import (
     evaluate,
     fill_placeholders,
     join_names,
+    state_matches,
 )
 
 
@@ -170,3 +171,13 @@ async def test_collect_with_exclude(hass: HomeAssistant) -> None:
         "name",
     )
     assert result == [ids[1]]
+
+
+def test_state_matches() -> None:
+    """Gleich, ungleich, größer und kleiner."""
+    assert state_matches("on", "ON", "equal")
+    assert state_matches("off", "on", "not_equal")
+    assert state_matches("15", "20", "below")
+    assert state_matches("21,5", "20", "above")
+    assert not state_matches("unknown", "20", "below")
+    assert not state_matches("25", "20", "below")

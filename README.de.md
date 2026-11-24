@@ -7,6 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/tobi136B/ha_state_announce/actions/workflows/validate.yml"><img src="https://github.com/tobi136B/ha_state_announce/actions/workflows/validate.yml/badge.svg" alt="Prüfung"></a>
+  <a href="https://github.com/tobi136B/ha_state_announce/releases"><img src="https://img.shields.io/github/v/release/tobi136B/ha_state_announce" alt="Release"></a>
   <img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5" alt="Home Assistant 2026.3+">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tobi136B/ha_state_announce" alt="Lizenz"></a>
 </p>
@@ -15,17 +16,37 @@
 
 Deutsch | [English](README.md)
 
-State Announce ergänzt Home Assistant um eine Aktion: **Zustand ansagen**. Sie bekommt eine Liste von Entitäten und einen Zustand und schickt eine Nachricht an ein oder mehrere Ziele, in der alle Entitäten genannt werden, die gerade diesen Zustand haben.
+Manchmal reicht es nicht zu wissen, *ob* etwas an, offen oder erkannt ist. Man will wissen, *was*. State Announce nimmt eine Gruppe von Entitäten, sucht die heraus, die gerade den gewünschten Zustand haben, und macht daraus einen ganz normalen Satz:
 
-Typische Anwendungen:
+> „2 Lichter sind noch an: Flur und Garage.“
+> „Person und Tier erkannt.“
+> „Batterie schwach: Haustür und Badsensor.“
 
-- Welche Fenster oder Türen offen sind
-- Welche Lichter noch an sind
-- Wer zu Hause ist
-- Welche Geräte laufen
-- Welche Batterien schwach sind
+Der Satz geht dorthin, wo du ihn haben willst: als Benachrichtigung aufs Handy oder den Fernseher, als Sprache auf einen smarten Lautsprecher, auf Alexa oder jeden anderen Lautsprecher, über den Home Assistant sprechen kann. Ganz ohne Templates.
 
-Die Nachricht besteht aus normalem Text mit Platzhaltern. Templates sind nicht nötig.
+## Was geprüft werden kann
+
+Alles, was einen Zustand hat. Ein paar Ideen:
+
+- Lichter oder Schalter, die noch an sind
+- offene Fenster, Türen oder Rollläden
+- Personen, Fahrzeuge oder Tiere, die eine Kamera erkannt hat
+- wer zu Hause ist
+- Batterien unter einem bestimmten Stand
+- Geräte, die laufen oder ein Problem melden
+
+Die Entitäten wählst du einzeln aus oder lässt sie über Etage, Bereich, Gerät oder Label finden. Eine Auswahl wird bei jedem Ausführen neu ermittelt, später hinzugefügte Geräte sind also automatisch dabei.
+
+## Wohin gesendet werden kann
+
+| Ziel | So kommt die Nachricht an |
+|---|---|
+| Benachrichtigungs Entitäten (Handy App, Fernseher, Wanddisplay, …) | als Benachrichtigung |
+| Benachrichtigungsdienste (ältere Integrationen) | als Benachrichtigung |
+| Media Player (Google, Sonos, HA Voice, …) | gesprochen über eine Sprachausgabe Engine |
+| Alexa über [Alexa Media Player](https://github.com/alandtse/alexa_media_player) | gesprochen, normal oder als Ansage mit Gong |
+
+Alle verfügbaren Ziele stehen in einer Auswahlliste. Mehrere gleichzeitig sind möglich.
 
 ## Installation
 
@@ -40,95 +61,120 @@ Bei älteren Versionen das Repository in HACS als benutzerdefiniertes Repository
 
 ## Benutzung
 
-Die Aktion **Zustand ansagen** in eine Automation oder ein Skript einfügen und ausfüllen:
+Die Aktion **Zustand ansagen** in eine Automation oder ein Skript einfügen.
 
-- **Entitäten** und/oder **Auswahl**: was geprüft wird
-- **Zustand**: der gesuchte Zustand, Standard `on`
-- **Nachrichten**: was bei einem, mehreren oder keinem Treffer gesendet wird
-- **Ziele**: wohin gesendet wird
-
-### Entitäten und Auswahl
-
-Was geprüft wird, lässt sich auf zwei Wegen festlegen. Beide können kombiniert werden.
+### Was geprüft wird
 
 | Feld | Beschreibung |
 |---|---|
-| Entitäten | Einzelne Entitäten. Werden in dieser Reihenfolge geprüft, Filter gelten für sie nicht. |
-| Auswahl | Etagen, Bereiche, Geräte oder Labels, optional mit ausgenommenen Zielen. Wird bei jeder Ausführung neu ausgewertet, später hinzugefügte Entitäten sind automatisch dabei. |
-| Geräteklasse | Filter für die Auswahl, z. B. Fenster oder Tür. |
+| Entitäten | Einzelne Entitäten, werden in dieser Reihenfolge geprüft. |
+| Auswahl | Etagen, Bereiche, Geräte oder Labels, optional mit Ausnahmen. |
+| Geräteklasse | Filter für die Auswahl, z. B. Fenster, Bewegung oder Batterie. |
 | Entitätstyp | Filter für die Auswahl, z. B. Licht oder Schalter. |
+| Zustand | Gesuchter Zustand oder Zahlenwert. Standard `on`. |
+| Vergleich | ist gleich, ist nicht gleich, größer als, kleiner als. |
 
-Die Anzahl der Entitäten, die in der Auswahl angezeigt wird, ist die Gesamtzahl der Etage oder des Bereichs. Die Filter werden erst beim Ausführen angewendet.
+Die Anzahl unter Auswahl ist die Gesamtzahl der Etage oder des Bereichs. Die Filter greifen erst beim Ausführen. Deaktivierte, ausgeblendete, Diagnose und Konfigurations Entitäten werden immer übersprungen.
 
-Über die Auswahl gefundene Entitäten werden nach Namen sortiert und folgen auf die einzeln gewählten. Deaktivierte, ausgeblendete, Diagnose und Konfigurations Entitäten werden übersprungen. Der Batteriesensor eines Fensterkontakts zählt also nicht als Fenster.
+### Was gesagt wird
 
-Beispiel: Auswahl *Obergeschoss*, Geräteklasse *Fenster* prüft alle Fensterkontakte dieser Etage, auch solche, die später dazukommen.
+| Feld | Wird gesendet, wenn |
+|---|---|
+| Nachricht bei einem Treffer | genau eine Entität zutrifft (leer: das nächste Feld gilt) |
+| Nachricht bei mehreren Treffern | zwei oder mehr zutreffen |
+| Nachricht ohne Treffer | keine zutrifft (leer: es wird nichts gesendet) |
 
-### Nachrichten und Platzhalter
-
-Es gibt drei Nachrichtenfelder, damit der Text zur Anzahl der Treffer passt:
-
-| Feld | Wird gesendet, wenn | Pflicht |
-|---|---|---|
-| Nachricht bei einem Treffer | genau eine Entität zutrifft | nein, sonst gilt das nächste Feld |
-| Nachricht bei mehreren Treffern | zwei oder mehr Entitäten zutreffen | ja |
-| Nachricht ohne Treffer | keine Entität zutrifft | nein, leer wird nichts gesendet |
-
-In jeder Nachricht gibt es zwei Platzhalter:
+In jeder Nachricht gibt es diese Platzhalter:
 
 | Platzhalter | Wird ersetzt durch |
 |---|---|
 | `{namen}` | die Namen, verbunden als `A`, `A und B` oder `A, B und C` |
-| `{anzahl}` | die Anzahl der Treffer |
+| `{anzahl}` | wie viele zutreffen |
 
-Die englischen Platzhalter `{names}` und `{count}` funktionieren ebenfalls. Das Verbindungswort richtet sich nach der Sprache von Home Assistant.
+`{names}` und `{count}` gehen genauso. Das Verbindungswort richtet sich nach der Sprache von Home Assistant.
 
-### Anzahl ansagen
+Weil es eigene Nachrichten für einen und für mehrere Treffer gibt, stimmt die Grammatik immer, und du entscheidest selbst, ob die Anzahl mitgesagt wird:
 
-Mit `{anzahl}` vor den Namen wird gesagt, wie viele es sind:
-
-| Nachricht | Ergebnis bei 3 Treffern |
+| Nachricht | Ergebnis bei 2 Treffern |
 |---|---|
-| `{anzahl} Fenster sind offen: {namen}.` | 3 Fenster sind offen: Küche, Bad und Büro. |
-| `Es sind {anzahl} Lichter an, nämlich {namen}.` | Es sind 3 Lichter an, nämlich Flur, Schreibtisch und Eingang. |
-| `{namen} sind offen ({anzahl} insgesamt).` | Küche, Bad und Büro sind offen (3 insgesamt). |
+| `{anzahl} Lichter sind noch an: {namen}.` | 2 Lichter sind noch an: Flur und Garage. |
+| `Noch an: {namen}.` | Noch an: Flur und Garage. |
+| `{namen} erkannt.` | Person und Tier erkannt. |
 
-Sprachassistenten wie Alexa sprechen die Zahl als Wort aus.
+Bei Sprachausgabe wird die Zahl als Wort gesprochen.
 
 ### Namen
 
-Die Option **Namensquelle** legt fest, welcher Name für jede Entität verwendet wird:
-
-| Option | Verwendeter Name |
-|---|---|
-| Alias, sonst Name (Standard) | der erste Alias der Entität, ohne Alias ihr Name |
-| Name | der Name der Entität |
-| Name ohne Bereich | der Name ohne den Namen des Bereichs |
-
-Mit Aliasen lassen sich am einfachsten kurze Sprechnamen vergeben. Sie werden pro Entität eingestellt unter **Einstellungen > Geräte & Dienste > Entitäten > (Entität) > Einstellungen > Sprachassistenten > Aliase**.
-
-### Ziele
-
-Die Liste der Ziele wird automatisch mit allen Benachrichtigungen im System gefüllt:
-
-- Benachrichtigungs Entitäten, zum Beispiel Handy Apps oder Fernseher, werden über `notify.send_message` angesprochen
-- Benachrichtigungsdienste werden direkt aufgerufen
-- Geräte von Alexa Media Player (`notify.alexa_media_*`) bekommen zusätzlich die Ausgabeart aus **Alexa Ausgabe**: Sprachausgabe oder Ansage
-
-Es können mehrere Ziele gleichzeitig gewählt werden. Fällt eines aus, bekommen die anderen die Nachricht trotzdem, und die Aktion meldet danach das fehlerhafte Ziel.
+Die Option **Namensquelle** legt fest, was für jede Entität gesagt wird: ihr Alias, ihr Name oder ihr Name ohne Bereich. Mit Aliasen bekommst du am einfachsten kurze, natürliche Namen wie „Flur“ oder „Tier“. Du stellst sie pro Entität ein unter **Einstellungen > Geräte & Dienste > Entitäten > (Entität) > Einstellungen > Sprachassistenten > Aliase**.
 
 ### Erweiterte Optionen
 
 | Option | Beschreibung |
 |---|---|
-| Titel | Titel der Benachrichtigung bei Zielen, die einen Titel unterstützen |
-| Alexa Ausgabe | Sprachausgabe oder Ansage, nur für Alexa Media Player |
-| Nicht erreichbare melden | Hängt Entitäten an, die nicht erreichbar oder unbekannt sind |
-| Nachricht bei nicht erreichbar | Text für diese Entitäten, Standard `Nicht erreichbar: {namen}.` |
+| Namensquelle | Alias (sonst Name), Name oder Name ohne Bereich |
+| Sprachausgabe Engine | Für Media Player Ziele. Leer: die erste vorhandene Engine |
+| Titel | Titel der Benachrichtigung, wenn das Ziel einen unterstützt |
+| Alexa Ausgabe | Normale Sprache oder Ansage mit Gong, nur Alexa Media Player |
+| Nicht erreichbare melden | Nicht erreichbare Entitäten zusätzlich nennen |
+| Nachricht bei nicht erreichbar | Standard `Nicht erreichbar: {namen}.` |
+
+Fällt ein Ziel aus, bekommen die anderen die Nachricht trotzdem. Die Aktion meldet danach das fehlerhafte Ziel.
 
 ## Beispiele
 
-### Offene Fenster einer Etage über einen Sprachassistenten
+### Kamera Erkennung
+
+```yaml
+action: state_announce.announce
+data:
+  entities:
+    - binary_sensor.haustuer_person
+    - binary_sensor.haustuer_fahrzeug
+    - binary_sensor.haustuer_tier
+  message_one: "{namen} erkannt."
+  message_many: "{namen} erkannt."
+  targets:
+    - media_player.wohnzimmer_lautsprecher
+```
+
+Mit den Aliasen „Person“, „Fahrzeug“ und „Tier“ wird eine gleichzeitige Erkennung als „Person und Tier erkannt.“ angesagt.
+
+### Vergessene Lichter
+
+```yaml
+action: state_announce.announce
+data:
+  selection:
+    floor_id: erdgeschoss
+  domains:
+    - light
+  message_one: "{namen} ist noch an."
+  message_many: "{anzahl} Lichter sind noch an: {namen}."
+  targets:
+    - notify.mobile_app_telefon
+  title: Licht
+```
+
+### Schwache Batterien
+
+```yaml
+action: state_announce.announce
+data:
+  selection:
+    label_id: batteriebetrieben
+  device_classes:
+    - battery
+  domains:
+    - sensor
+  state: "20"
+  comparison: below
+  message_one: "Batterie schwach: {namen}."
+  message_many: "{anzahl} Batterien sind schwach: {namen}."
+  targets:
+    - notify.mobile_app_telefon
+```
+
+### Offene Fenster einer Etage
 
 ```yaml
 action: state_announce.announce
@@ -137,30 +183,11 @@ data:
     floor_id: obergeschoss
   device_classes:
     - window
-  state: "on"
-  message_one: "Das Fenster {namen} ist offen."
+  message_one: "{namen} ist offen."
   message_many: "{anzahl} Fenster sind offen: {namen}."
   message_none: "Alle Fenster sind zu."
   targets:
-    - notify.alexa_media_wohnzimmer
-  alexa_type: tts
-```
-
-### Vergessene Lichter aufs Handy
-
-```yaml
-action: state_announce.announce
-data:
-  entities:
-    - light.flur
-    - light.schreibtisch
-    - light.eingang
-  state: "on"
-  message_one: "{namen} ist noch an."
-  message_many: "{anzahl} Lichter sind noch an: {namen}."
-  targets:
-    - notify.mobile_app_telefon
-  title: Licht
+    - notify.alexa_media_kueche
 ```
 
 ### Wer ist zu Hause
@@ -181,13 +208,13 @@ data:
 
 ## Rückgabe
 
-Die Aktion kann ihr Ergebnis in eine Antwortvariable schreiben:
+Die Aktion kann ihr Ergebnis in eine Antwortvariable schreiben, etwa um den Satz woanders weiterzuverwenden:
 
 ```yaml
-names: ["Küche", "Büro"]
+names: ["Flur", "Garage"]
 count: 2
 unavailable: []
-message: "2 Fenster sind offen: Küche und Büro."
+message: "2 Lichter sind noch an: Flur und Garage."
 sent: true
 ```
 

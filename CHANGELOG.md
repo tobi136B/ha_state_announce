@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- Media players as targets, spoken via a text to speech engine
+- New field Comparison: is equal to, is not equal to, is above, is below
+- New icon and logo, not tied to a single use case
+- README rewritten with examples for different use cases
+
 ## 0.2.1
 
 - Selection supports excluded targets (Exclude, Home Assistant 2026.11)

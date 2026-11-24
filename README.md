@@ -7,6 +7,7 @@
 
 <p align="center">
   <a href="https://github.com/tobi136B/ha_state_announce/actions/workflows/validate.yml"><img src="https://github.com/tobi136B/ha_state_announce/actions/workflows/validate.yml/badge.svg" alt="Validate"></a>
+  <a href="https://github.com/tobi136B/ha_state_announce/releases"><img src="https://img.shields.io/github/v/release/tobi136B/ha_state_announce" alt="Release"></a>
   <img src="https://img.shields.io/badge/Home%20Assistant-2026.3%2B-41BDF5" alt="Home Assistant 2026.3+">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/tobi136B/ha_state_announce" alt="License"></a>
 </p>
@@ -15,17 +16,37 @@
 
 [Deutsch](README.de.md) | English
 
-State Announce adds one action to Home Assistant: **Announce states**. You give it a list of entities and a state. It sends a single message to one or more notification targets that names every entity currently in that state.
+Sometimes you don't want to know *whether* something is on, open or detected. You want to know *which*. State Announce takes a group of entities, picks out the ones in the state you care about and turns them into one natural sentence:
 
-Typical uses:
+> "2 lights are still on: Hallway and Garage."
+> "Person and animal detected."
+> "Battery low: Front door and Bathroom sensor."
 
-- Which windows or doors are open
-- Which lights are still on
-- Who is at home
-- Which devices are running
-- Which batteries are low
+That sentence goes wherever you want it: a phone notification, a TV, a smart speaker, Alexa, or any speaker Home Assistant can talk through. No templates involved.
 
-The message is built from plain text with placeholders, so no templates are required.
+## What it can check
+
+Anything that has a state. A few ideas:
+
+- lights or switches left on
+- open windows, doors or covers
+- people, vehicles or animals detected by a camera
+- who is at home
+- batteries below a certain level
+- devices that are running or reporting a problem
+
+You pick the entities one by one, or let it find them by floor, area, device or label. A selection is looked up again every time the action runs, so devices you add later are included automatically.
+
+## Where it can send
+
+| Target | How the message arrives |
+|---|---|
+| Notify entities (mobile app, TV, wall display, …) | as a notification |
+| Notify services (older integrations) | as a notification |
+| Media players (Google, Sonos, HA Voice, …) | spoken via a text to speech engine |
+| Alexa via [Alexa Media Player](https://github.com/alandtse/alexa_media_player) | spoken, plain or as an announcement with chime |
+
+All available targets show up in a dropdown. You can pick several at once.
 
 ## Installation
 
@@ -40,95 +61,120 @@ On older versions, add the repository to HACS as a custom repository of type **I
 
 ## Usage
 
-Add the action **Announce states** to an automation or script and fill in:
+Add the action **Announce states** to an automation or script.
 
-- **Entities** and/or **Selection**: what to check
-- **State**: the state to look for, `on` by default
-- **Messages**: what to send for one, several or no matches
-- **Targets**: where to send it
-
-### Entities and selection
-
-There are two ways to choose what gets checked. They can be combined.
+### What to check
 
 | Field | Description |
 |---|---|
-| Entities | Individual entities. Checked in the given order, filters do not apply. |
-| Selection | Floors, areas, devices or labels, optionally with excluded targets. Resolved on every run, so entities added later are included automatically. |
-| Device class | Filter for the selection, e.g. window or door. |
+| Entities | Individual entities, checked in the given order. |
+| Selection | Floors, areas, devices or labels, with optional exclusions. |
+| Device class | Filter for the selection, e.g. window, motion or battery. |
 | Entity type | Filter for the selection, e.g. light or switch. |
+| State | The state or number to look for. Default `on`. |
+| Comparison | is equal to, is not equal to, is above, is below. |
 
-The entity count shown in the selection is the total of the floor or area. The filters are applied when the action runs.
+The entity count shown under Selection is the total of the floor or area. The filters are applied when the action runs. Disabled, hidden, diagnostic and configuration entities are always skipped.
 
-Entities found through the selection are sorted by name and follow the individually chosen ones. Disabled, hidden, diagnostic and configuration entities are skipped, so a battery sensor on a window contact is not counted as a window.
+### What to say
 
-Example: Selection *Upstairs*, device class *Window* checks every window contact on that floor, including ones you add later.
+| Field | Sent when |
+|---|---|
+| Message for one match | exactly one entity matches (falls back to the next field if empty) |
+| Message for multiple matches | two or more match |
+| Message for no match | nothing matches (nothing is sent if empty) |
 
-### Messages and placeholders
-
-There are three message fields, so the wording can match the number of results:
-
-| Field | Sent when | Required |
-|---|---|---|
-| Message for one match | exactly one entity matches | no, falls back to the next field |
-| Message for multiple matches | two or more entities match | yes |
-| Message for no match | nothing matches | no, nothing is sent if empty |
-
-Two placeholders can be used in every message:
+Use these placeholders in any message:
 
 | Placeholder | Replaced with |
 |---|---|
 | `{names}` | the names, joined as `A`, `A and B` or `A, B and C` |
-| `{count}` | the number of matches |
+| `{count}` | how many matched |
 
-German placeholders `{namen}` and `{anzahl}` work as well. The word used to join the names follows the language of your Home Assistant.
+`{namen}` and `{anzahl}` work too. The joining word follows the language of your Home Assistant.
 
-### Announcing the count
+Having separate messages for one and for several matches means the grammar is always right, and you can decide whether the count should be spoken:
 
-Put `{count}` in front of the names to say how many there are:
-
-| Message | Result with 3 matches |
+| Message | Result with 2 matches |
 |---|---|
-| `{count} windows are open: {names}.` | 3 windows are open: Kitchen, Bath and Office. |
-| `There are {count} lights on, namely {names}.` | There are 3 lights on, namely Hall, Desk and Porch. |
-| `{names} are open ({count} in total).` | Kitchen, Bath and Office are open (3 in total). |
+| `{count} lights are still on: {names}.` | 2 lights are still on: Hallway and Garage. |
+| `Still on: {names}.` | Still on: Hallway and Garage. |
+| `{names} detected.` | Person and animal detected. |
 
-Voice assistants such as Alexa read the number as a word.
+Voice output reads the number as a word.
 
 ### Names
 
-The **Name source** option controls which name is used for each entity:
-
-| Option | Name used |
-|---|---|
-| Alias, otherwise name (default) | the first alias of the entity, or its name if it has none |
-| Name | the name of the entity |
-| Name without area | the name with the area name removed |
-
-Aliases are the easiest way to set short spoken names. They are set per entity under **Settings > Devices & services > Entities > (entity) > Settings > Voice assistants > Aliases**.
-
-### Targets
-
-The target list is filled automatically with every notification in your system:
-
-- notify entities, for example mobile apps or TVs, are sent via `notify.send_message`
-- notify services are called directly
-- Alexa Media Player devices (`notify.alexa_media_*`) additionally get the output type from **Alexa output**: text to speech or announcement
-
-Several targets can be selected at once. If one of them fails, the others still receive the message and the action reports the failed target afterwards.
+The **Name source** option decides what is said for each entity: its alias, its name, or its name without the area. Aliases are the easiest way to get short, natural names such as "Hallway" or "animal". You set them per entity under **Settings > Devices & services > Entities > (entity) > Settings > Voice assistants > Aliases**.
 
 ### Advanced options
 
 | Option | Description |
 |---|---|
+| Name source | Alias (otherwise name), name, or name without area |
+| Text to speech engine | Used for media player targets. Empty: the first available engine |
 | Title | Notification title for targets that support one |
-| Alexa output | Text to speech or announcement, used for Alexa Media Player only |
-| Report unavailable | Appends entities that are unavailable or unknown |
-| Message for unavailable | Text for those entities, default `Not reachable: {names}.` |
+| Alexa output | Plain speech or announcement with chime, Alexa Media Player only |
+| Report unavailable | Also mention entities that are unavailable |
+| Message for unavailable | Default `Not reachable: {names}.` |
+
+If one target fails, the others still get the message. The action reports the failed target afterwards.
 
 ## Examples
 
-### Open windows on a floor, announced by a voice assistant
+### Camera detections
+
+```yaml
+action: state_announce.announce
+data:
+  entities:
+    - binary_sensor.front_door_person
+    - binary_sensor.front_door_vehicle
+    - binary_sensor.front_door_animal
+  message_one: "{names} detected."
+  message_many: "{names} detected."
+  targets:
+    - media_player.living_room_speaker
+```
+
+With aliases "Person", "Vehicle" and "Animal", two detections at once are announced as "Person and animal detected."
+
+### Lights left on
+
+```yaml
+action: state_announce.announce
+data:
+  selection:
+    floor_id: ground_floor
+  domains:
+    - light
+  message_one: "{names} is still on."
+  message_many: "{count} lights are still on: {names}."
+  targets:
+    - notify.mobile_app_phone
+  title: Lights
+```
+
+### Low batteries
+
+```yaml
+action: state_announce.announce
+data:
+  selection:
+    label_id: battery_powered
+  device_classes:
+    - battery
+  domains:
+    - sensor
+  state: "20"
+  comparison: below
+  message_one: "Battery low: {names}."
+  message_many: "{count} batteries are low: {names}."
+  targets:
+    - notify.mobile_app_phone
+```
+
+### Open windows on a floor
 
 ```yaml
 action: state_announce.announce
@@ -137,30 +183,11 @@ data:
     floor_id: upstairs
   device_classes:
     - window
-  state: "on"
-  message_one: "The window {names} is open."
+  message_one: "{names} is open."
   message_many: "{count} windows are open: {names}."
   message_none: "All windows are closed."
   targets:
-    - notify.alexa_media_living_room
-  alexa_type: tts
-```
-
-### Lights left on, sent to a phone
-
-```yaml
-action: state_announce.announce
-data:
-  entities:
-    - light.hall
-    - light.desk
-    - light.porch
-  state: "on"
-  message_one: "{names} is still on."
-  message_many: "{count} lights are still on: {names}."
-  targets:
-    - notify.mobile_app_phone
-  title: Lights
+    - notify.alexa_media_kitchen
 ```
 
 ### Who is home
@@ -181,13 +208,13 @@ data:
 
 ## Response data
 
-The action can return its result to a response variable:
+The action can hand its result to a response variable, for example to use the sentence somewhere else:
 
 ```yaml
-names: ["Kitchen", "Office"]
+names: ["Hallway", "Garage"]
 count: 2
 unavailable: []
-message: "2 windows are open: Kitchen and Office."
+message: "2 lights are still on: Hallway and Garage."
 sent: true
 ```
 
